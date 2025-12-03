@@ -39,9 +39,12 @@
     <Button
         android:id="@+id/permissions_button"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="28dp"
         android:layout_marginStart="8dp"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
         android:text="Enable Permissions"
+        android:textSize="12sp"
         app:layout_constraintBaseline_toBaselineOf="@+id/permissions_label"
         app:layout_constraintStart_toStartOf="@+id/guideline" />
 </androidx.constraintlayout.widget.ConstraintLayout>
