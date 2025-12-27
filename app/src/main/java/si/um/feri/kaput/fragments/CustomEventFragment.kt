@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import si.um.feri.kaput.MyApplication
 import si.um.feri.kaput.databinding.FragmentCustomEventBinding
+import si.um.feri.kaput.utils.MqttUtil
 
 /**
  * A simple [Fragment] subclass.
@@ -29,5 +30,18 @@ class CustomEventFragment : Fragment() {
         _binding = FragmentCustomEventBinding.inflate(inflater, container, false)
         app = requireActivity().application as MyApplication
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        initButtons()
+    }
+
+    private fun initButtons() {
+        //TODO: tuki not na tak nacin dodata funkcionalnost, mora bit string...
+        binding.submitButton.setOnClickListener {
+            MqttUtil.publish(app.mqttClient,"event", "Some random data.... in custom event fragment")
+        }
     }
 }
