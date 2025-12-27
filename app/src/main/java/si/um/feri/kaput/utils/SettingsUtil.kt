@@ -10,7 +10,7 @@ object SettingsUtil {
     const val FILE_NAME = "settings"
 //    const val VIBRATION = "vibration_enabled"
 //    const val INEDIBLE = "inedible_enabled"
-//    const val UUID_KEY = "uuid"
+    const val UUID_KEY = "uuid"
 
     private fun getPreferences(context: Context): SharedPreferences {
         return context.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
@@ -40,18 +40,18 @@ object SettingsUtil {
 //        }
 //    }
 //
-//    fun handleUserUUID(context: Context) {
-//        var uuid = getPreferences(context).getString(UUID_KEY, "")
-//
-//        if (uuid!!.isEmpty()) {
-//            uuid = UUID.randomUUID().toString()
-//            getPreferences(context).edit {
-//                putString(UUID_KEY, uuid)
-//            }
-//        }
-//    }
-//
-//    fun getUserUUID(context: Context): String? {
-//        return getPreferences(context).getString(UUID_KEY, "unknown")
-//    }
+    fun handleUserUUID(context: Context) {
+        var uuid = getPreferences(context).getString(UUID_KEY, "")
+
+        if (uuid!!.isEmpty()) {
+            uuid = UUID.randomUUID().toString()
+            getPreferences(context).edit {
+                putString(UUID_KEY, uuid)
+            }
+        }
+    }
+
+    fun getUserUUID(context: Context): String? {
+        return getPreferences(context).getString(UUID_KEY, "unknown")
+    }
 }
