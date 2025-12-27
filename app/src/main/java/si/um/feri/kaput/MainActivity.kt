@@ -10,6 +10,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.NavHostFragment.Companion.findNavController
 import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import si.um.feri.kaput.databinding.ActivityMainBinding
 import si.um.feri.kaput.utils.SettingsUtil
@@ -56,5 +57,10 @@ class MainActivity : AppCompatActivity() {
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        val navController = findNavController(supportFragmentManager.findFragmentById(R.id.fragment_host) as NavHostFragment)
+        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 }

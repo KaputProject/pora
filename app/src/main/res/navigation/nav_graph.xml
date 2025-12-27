@@ -8,6 +8,38 @@
     <fragment
         android:id="@+id/homeFragment"
         android:name="si.um.feri.kaput.fragments.HomeFragment"
-        android:label="fragment_home"
-        tools:layout="@layout/fragment_home" />
+        android:label="Home"
+        tools:layout="@layout/fragment_home" >
+        <action
+            android:id="@+id/action_homeFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_customEventFragment"
+            app:destination="@id/customEventFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_simulateFragment"
+            app:destination="@id/simulateFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_uploadFragment"
+            app:destination="@id/uploadFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="si.um.feri.kaput.fragments.SettingsFragment"
+        android:label="Settings" />
+    <fragment
+        android:id="@+id/customEventFragment"
+        android:name="si.um.feri.kaput.fragments.CustomEventFragment"
+        android:label="Create a Custom Event"
+        tools:layout="@layout/fragment_custom_event" />
+    <fragment
+        android:id="@+id/simulateFragment"
+        android:name="si.um.feri.kaput.fragments.SimulateFragment"
+        android:label="Simulate Events"
+        tools:layout="@layout/fragment_simulate" />
+    <fragment
+        android:id="@+id/uploadFragment"
+        android:name="si.um.feri.kaput.fragments.UploadFragment"
+        android:label="Upload a Statement"
+        tools:layout="@layout/fragment_upload" />
 </navigation>
