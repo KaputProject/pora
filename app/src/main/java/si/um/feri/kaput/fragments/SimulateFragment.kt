@@ -41,7 +41,7 @@ class SimulateFragment : Fragment() {
     private fun initButtons() {
         //TODO: tuki not na tak nacin dodata funkcionalnost, mora bit string...
         binding.submitButton.setOnClickListener {
-            MqttUtil.publish(app.mqttClient,"simulation", "Some random data.... in simulate fragment")
+            MqttUtil.publish(app.mqttClient, MqttUtil.SIMULATION_TOPIC, "Some random data.... in simulate fragment")
         }
     }
 }

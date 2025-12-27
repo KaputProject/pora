@@ -11,6 +11,9 @@ object SettingsUtil {
 //    const val VIBRATION = "vibration_enabled"
 //    const val INEDIBLE = "inedible_enabled"
     const val UUID_KEY = "uuid"
+    const val BROKER_KEY = "mqtt_broker"
+    const val MQTT_USERNAME_KEY = "mqtt_username"
+    const val MQTT_PASSWORD_KEY = "mqtt_password"
 
     private fun getPreferences(context: Context): SharedPreferences {
         return context.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
@@ -39,7 +42,19 @@ object SettingsUtil {
 //            putBoolean(INEDIBLE, enabled)
 //        }
 //    }
-//
+
+    fun getMqttBroker(context: Context): String {
+        return getPreferences(context).getString(BROKER_KEY, "")!!
+    }
+
+    fun getMqttUsername(context: Context): String {
+        return getPreferences(context).getString(MQTT_USERNAME_KEY, "")!!
+    }
+
+    fun getMqttPassword(context: Context): String {
+        return getPreferences(context).getString(MQTT_PASSWORD_KEY, "")!!
+    }
+
     fun handleUserUUID(context: Context) {
         var uuid = getPreferences(context).getString(UUID_KEY, "")
 

@@ -11,15 +11,28 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.MqttMessage
 
 object MqttUtil {
-    private const val BROKER_URL = "tcp://broker.hivemq.com:1883"
+    private lateinit var BROKER_URL: String
+    private lateinit var USERNAME: String
+    private lateinit var PASSWORD: String
+
     const val DEFAULT_TOPIC = "kaput"
+    const val UPLOAD_TOPIC = "kaput/upload"
+    const val SIMULATION_TOPIC = "kaput/simulation"
+    const val EVENT_TOPIC = "kaput/event"
+
     const val TAG = "MqttUtil"
 
     fun buildClient(context: Context, clientId: String): MqttAndroidClient {
         val client = MqttAndroidClient(context, BROKER_URL, clientId)
+        BROKER_URL = SettingsUtil.getMqttBroker(context)
+        USERNAME = SettingsUtil.getMqttUsername(context)
+        PASSWORD = SettingsUtil.getMqttPassword(context)
 
         val options = MqttConnectOptions().apply {
             isCleanSession = true
+            userName = USERNAME
+            password = PASSWORD.toCharArray()
+            isAutomaticReconnect = true
         }
 
         client.setCallback(object : MqttCallback {
@@ -58,7 +71,9 @@ object MqttUtil {
         try {
             val message = MqttMessage()
             message.payload = payload.toByteArray()
+
             client.publish(topic, message)
+
             Log.d(TAG, "Message published to topic $topic")
         } catch (e: Exception) {
             Log.d(TAG, "Error Publishing: ${e.message}")

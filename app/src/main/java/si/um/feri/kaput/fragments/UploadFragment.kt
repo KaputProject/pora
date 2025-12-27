@@ -5,9 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.navigation.fragment.findNavController
 import si.um.feri.kaput.MyApplication
-import si.um.feri.kaput.R
 import si.um.feri.kaput.databinding.FragmentUploadBinding
 import si.um.feri.kaput.utils.MqttUtil
 
@@ -43,7 +41,7 @@ class UploadFragment : Fragment() {
     private fun initButtons() {
         //TODO: tuki not na tak nacin dodata funkcionalnost, mora bit string...
         binding.submitButton.setOnClickListener {
-            MqttUtil.publish(app.mqttClient,"upload", "Some random data.... in upload fragment")
+            MqttUtil.publish(app.mqttClient, MqttUtil.UPLOAD_TOPIC, "Some random data.... in upload fragment")
         }
     }
 }
