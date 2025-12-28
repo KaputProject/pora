@@ -18,10 +18,9 @@ object HttpUtil {
     }
 
     /**
-     * Sends a POST request with JSON data
-     * If you want to send MQTT after response, add mqttClient, mqttTopic to params
+     * Sends a POST request with JSON data to the specified URL and publishes the response to the given MQTT topic if specified.
      */
-    fun sendPostRequest(client: OkHttpClient, context: Context, url: String, data: MultipartBody, mqttClient: MqttAndroidClient, mqttTopic: String) {
+    fun sendPostRequest(client: OkHttpClient, context: Context, url: String, data: MultipartBody, mqttClient: MqttAndroidClient? = null, mqttTopic: String? = null) {
         try {
             val request = Request.Builder()
                 .url(url)
@@ -36,7 +35,10 @@ object HttpUtil {
                 override fun onResponse(call: Call, response: Response) {
                     val responseBody = response.body?.string()
 
-                    mqttClient.publish(mqttTopic, responseBody?.toByteArray() ?: "{}".toByteArray(), 0, false)
+                    if (mqttClient != null && mqttTopic != null) {
+                        mqttClient.publish(mqttTopic, responseBody?.toByteArray() ?: "{}".toByteArray(), 0, false)
+                    }
+
                     Log.d(TAG, "HTTP POST request successful. Response published to MQTT topic $mqttTopic")
                 }
             })
