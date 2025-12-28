@@ -21,12 +21,11 @@ object HttpUtil {
      * Sends a POST request with JSON data
      * If you want to send MQTT after response, add mqttClient, mqttTopic to params
      */
-    fun sendPostRequest(client: OkHttpClient, context: Context, url: String, data: String, mqttClient: MqttAndroidClient, mqttTopic: String) {
+    fun sendPostRequest(client: OkHttpClient, context: Context, url: String, data: MultipartBody, mqttClient: MqttAndroidClient, mqttTopic: String) {
         try {
-            val body = data.toRequestBody(JSON)
             val request = Request.Builder()
                 .url(url)
-                .post(body)
+                .post(data)
                 .build()
 
             client.newCall(request).enqueue(object : Callback {

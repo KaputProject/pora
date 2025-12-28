@@ -5,7 +5,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,11 +13,14 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import si.um.feri.kaput.MyApplication
 import si.um.feri.kaput.databinding.FragmentUploadBinding
 import si.um.feri.kaput.utils.HttpUtil
 import si.um.feri.kaput.utils.MqttUtil
 import java.io.ByteArrayOutputStream
+import java.util.Date
 
 class UploadFragment : Fragment() {
     private var _binding: FragmentUploadBinding? = null
@@ -96,15 +98,21 @@ class UploadFragment : Fragment() {
                 val stream = ByteArrayOutputStream()
                 image!!.compress(Bitmap.CompressFormat.JPEG, 100, stream)
                 val byteArray = stream.toByteArray()
-                val encodedImage = Base64.encodeToString(byteArray, Base64.DEFAULT)
 
-                val json = """{"image":"$encodedImage"}"""
+                val requestBody = MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart(
+                        "slika", "upload.jpg",
+                        byteArray.toRequestBody()
+                    )
+                    .addFormDataPart("cas", Date().toInstant().toString())
+                    .build()
 
                 HttpUtil.sendPostRequest(
                     app.httpClient,
                     context,
                     url,
-                    json,
+                    requestBody,
                     app.mqttClient,
                     MqttUtil.UPLOAD_TOPIC
                 )
