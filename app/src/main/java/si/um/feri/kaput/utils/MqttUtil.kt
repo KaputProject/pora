@@ -2,6 +2,7 @@ package si.um.feri.kaput.utils
 
 import android.content.Context
 import android.util.Log
+import androidx.preference.PreferenceManager
 import info.mqtt.android.service.MqttAndroidClient
 import org.eclipse.paho.client.mqttv3.IMqttActionListener
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
@@ -23,10 +24,12 @@ object MqttUtil {
     const val TAG = "MqttUtil"
 
     fun buildClient(context: Context, clientId: String): MqttAndroidClient {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        BROKER_URL = prefs.getString("mqtt_broker", "")!!
+        USERNAME = prefs.getString("mqtt_username", "")!!
+        PASSWORD = prefs.getString("mqtt_password", "")!!
+
         val client = MqttAndroidClient(context, BROKER_URL, clientId)
-        BROKER_URL = SettingsUtil.getMqttBroker(context)
-        USERNAME = SettingsUtil.getMqttUsername(context)
-        PASSWORD = SettingsUtil.getMqttPassword(context)
 
         val options = MqttConnectOptions().apply {
             isCleanSession = true
