@@ -38,4 +38,12 @@
             app:useSimpleSummaryProvider="false" />
     </PreferenceCategory>
 
+    <PreferenceCategory app:title="UvRVRV">
+        <EditTextPreference
+            app:key="vid_url"
+            app:title="URL"
+            app:summary="Enter the URL to the UvRVRV server"
+            app:useSimpleSummaryProvider="false" />
+    </PreferenceCategory>
+
 </PreferenceScreen>

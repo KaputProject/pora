@@ -5,8 +5,10 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.preference.PreferenceManager
 import si.um.feri.kaput.MyApplication
 import si.um.feri.kaput.databinding.FragmentUploadBinding
+import si.um.feri.kaput.utils.HttpUtil
 import si.um.feri.kaput.utils.MqttUtil
 
 /**
@@ -18,6 +20,7 @@ class UploadFragment : Fragment() {
     private var _binding: FragmentUploadBinding? = null
     private val binding get() = _binding!!
     private lateinit var app: MyApplication
+    private var image = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,9 +42,13 @@ class UploadFragment : Fragment() {
     }
 
     private fun initButtons() {
+        val context = requireContext()
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        val url = prefs.getString("vid_url", "http://10.0.2.2:5000/")!! + "/analiziraj"
+
         //TODO: tuki not na tak nacin dodata funkcionalnost, mora bit string...
         binding.submitButton.setOnClickListener {
-            MqttUtil.publish(app.mqttClient, MqttUtil.UPLOAD_TOPIC, "Some random data.... in upload fragment")
+            HttpUtil.sendPostRequest(app.httpClient, context, url, image, app.mqttClient, MqttUtil.UPLOAD_TOPIC)
         }
     }
 }

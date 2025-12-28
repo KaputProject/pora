@@ -53,4 +53,5 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 
     implementation("com.github.hannesa2:paho.mqtt.android:4.4")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }
