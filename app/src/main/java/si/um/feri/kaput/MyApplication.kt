@@ -6,19 +6,15 @@ import info.mqtt.android.service.MqttAndroidClient
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.eclipse.paho.client.mqttv3.internal.Token
 import org.json.JSONObject
-
 import si.um.feri.kaput.utils.HttpUtil
 import si.um.feri.kaput.utils.MqttUtil
 import si.um.feri.kaput.utils.SettingsUtil
 val USER_NAME = BuildConfig.USER_NAME
 val PASSWORD = BuildConfig.PASSWORD
 val LOG_IN_URL = BuildConfig.LOG_IN_URL
-
-val FAMILY_URL = "http://10.0.2.2:5000/family"
-
-val USER_URL = "http://10.0.2.2:5000/users"
+val FAMILY_URL = BuildConfig.FAMILY_URL
+val USER_URL = BuildConfig.USER_URL
 
 class MyApplication: Application() {
     var data: MutableList<Int> = mutableListOf()
@@ -28,8 +24,8 @@ class MyApplication: Application() {
     var userId: String = ""
     var familyId: String = ""
 
-    var dataSetOne: JSONObject = JSONObject()
-    var dataSetTwo: JSONObject = JSONObject()
+    var familyDataSet: JSONObject = JSONObject()
+    var UserDataSet: JSONObject = JSONObject()
 
     override fun onCreate() {
         super.onCreate()
@@ -39,6 +35,7 @@ class MyApplication: Application() {
 
         mqttClient = MqttUtil.buildClient(this, SettingsUtil.getUserUUID(this) ?: System.currentTimeMillis().toString())
         httpClient = HttpUtil.buildClient()
+
         loginToServer()
     }
     fun loginToServer() {
@@ -69,6 +66,7 @@ class MyApplication: Application() {
                     Log.d("MyApp", "user id: $id")
                     if(this.JWTtoken.isNotEmpty()){
                          getFamilyId()
+                         getUserDataSet()
                     }
                 } catch (e: Exception) {
                     Log.d("MyApp", "JSON parse error: ${e.message}")
@@ -98,8 +96,9 @@ class MyApplication: Application() {
                         json.optString("_id", "")
                     }
                     this.familyId = id
-                    getDataSetOne()
-                    getDataSetTwo()
+                    if(this.familyId.isNotEmpty()){
+                        getFamilyDataSet()
+                    }
                     Log.d("MyApp", "Family ID: $id")
                 } catch (e: Exception) {
                     Log.d("MyApp", "JSON parse error: ${e.message}")
@@ -111,7 +110,7 @@ class MyApplication: Application() {
         )
     }
 
-    fun getDataSetOne() {
+    fun getFamilyDataSet() {
         val headers = if (JWTtoken.isNotEmpty()) {
             mapOf("Authorization" to "Bearer $JWTtoken")
         } else emptyMap()
@@ -123,10 +122,18 @@ class MyApplication: Application() {
             headers = headers,
             onSuccess = { response ->
                 try {
-                    Log.d("MyApp", "DataSetOne response: $response")
-                    this.dataSetOne = JSONObject(response)
+                    this.familyDataSet = JSONObject(response)
+
+                    val dir = java.io.File(filesDir, "testJSONfiles")
+                    if (!dir.exists()) {
+                        dir.mkdirs()
+                    }
+                    val file = java.io.File(dir, "family_statistics.json")
+                    file.writeText(response)
+                    Log.d("MyApp", "getFamilyDataSet length: ${response.length}")
+                    Log.d("MyApp", "family JSON saved to: ${file.absolutePath}")
                 } catch (e: Exception) {
-                    Log.d("MyApp", "DataSetOne response: $response")
+                    Log.d("MyApp", "getFamilyDataSet error: ${e.message}")
                 }
             },
             onFailure = {
@@ -135,7 +142,7 @@ class MyApplication: Application() {
         )
     }
 
-    fun getDataSetTwo() {
+    fun getUserDataSet() {
         val headers = if (JWTtoken.isNotEmpty()) {
             mapOf("Authorization" to "Bearer $JWTtoken")
         } else emptyMap()
@@ -147,10 +154,19 @@ class MyApplication: Application() {
             headers = headers,
             onSuccess = { response ->
                 try {
-                    this.dataSetTwo = JSONObject(response)
-                    Log.d("MyApp", "DataSetTwo response: $response")
+                    this.UserDataSet = JSONObject(response)
+
+                    val dir = java.io.File(filesDir, "testJSONfiles")
+                    if (!dir.exists()) {
+                        dir.mkdirs()
+                    }
+                    val file = java.io.File(dir, "user_statistics.json")
+                    file.writeText(response)
+
+                    Log.d("MyApp", "getUserDataSet length: ${response.length}")
+                    Log.d("MyApp", "user JSON saved to: ${file.absolutePath}")
                 } catch (e: Exception) {
-                    Log.d("MyApp", "DataSetTwo response: $response")
+                    Log.d("MyApp", "getUserDataSet error: ${e.message}")
                 }
             },
             onFailure = {
