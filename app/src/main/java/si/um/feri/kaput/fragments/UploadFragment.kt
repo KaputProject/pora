@@ -108,7 +108,7 @@ class UploadFragment : Fragment() {
                     .addFormDataPart("cas", Date().toInstant().toString())
                     .build()
 
-                HttpUtil.sendPostRequest(
+                HttpUtil.URVRVPostRequest(
                     app.httpClient,
                     context,
                     url,
