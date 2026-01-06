@@ -57,6 +57,9 @@ object HttpUtil {
         }
     }
 
+    /**
+     * Sends a POST request with JSON data to the specified URL and publishes the response mostly used for connecting to the backend serverjem iz spletne
+     */
     fun httpPostRequest(
         client: OkHttpClient,
         context: Context,
@@ -99,7 +102,9 @@ object HttpUtil {
             onFailure("Exception in logInRequest: ${e.message}")
         }
     }
-
+    /**
+     * Sends a GET request to the specified URL and publishes the response mostly used for connecting to backend server iz spletne
+     */
     fun httpGetRequest(
         client: OkHttpClient,
         context: Context,

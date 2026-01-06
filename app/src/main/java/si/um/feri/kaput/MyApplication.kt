@@ -10,20 +10,17 @@ import org.json.JSONObject
 import si.um.feri.kaput.utils.HttpUtil
 import si.um.feri.kaput.utils.MqttUtil
 import si.um.feri.kaput.utils.SettingsUtil
-val USER_NAME = BuildConfig.USER_NAME
-val PASSWORD = BuildConfig.PASSWORD
-val LOG_IN_URL = BuildConfig.LOG_IN_URL
-val FAMILY_URL = BuildConfig.FAMILY_URL
-val USER_URL = BuildConfig.USER_URL
+
+
 
 class MyApplication: Application() {
     var data: MutableList<Int> = mutableListOf()
     lateinit var mqttClient: MqttAndroidClient
     lateinit var httpClient: OkHttpClient
+    // storign data after login in the app instance Accessible from other activities and fragments // will be refreshed on each app start
     var JWTtoken: String = ""
     var userId: String = ""
     var familyId: String = ""
-
     var familyDataSet: JSONObject = JSONObject()
     var UserDataSet: JSONObject = JSONObject()
 
@@ -35,21 +32,25 @@ class MyApplication: Application() {
 
         mqttClient = MqttUtil.buildClient(this, SettingsUtil.getUserUUID(this) ?: System.currentTimeMillis().toString())
         httpClient = HttpUtil.buildClient()
-
+        // log in to server to get JWT token. Further requests done after successful login in log in function.
         loginToServer()
     }
+
+    /**
+     * Used to log in to the server and retrieve JWT token.
+     */
     fun loginToServer() {
-        val jsonBody: RequestBody = """
-            {
-                "username": "$USER_NAME",
-                "password": "$PASSWORD"
-            }
-        """.trimIndent().toRequestBody(HttpUtil.JSON)
+      val jsonBody: RequestBody = """
+                    {
+                        "username": "${BuildConfig.USER_NAME}",
+                        "password": "${BuildConfig.PASSWORD}"
+                    }
+                """.trimIndent().toRequestBody(HttpUtil.JSON)
 
         HttpUtil.httpPostRequest(
             this.httpClient,
             this,
-            LOG_IN_URL,
+            BuildConfig.USER_URL + "/login",
             jsonBody,
             onSuccess = { response ->
                 try {
@@ -65,7 +66,8 @@ class MyApplication: Application() {
                     Log.d("MyApp", "Token: $token")
                     Log.d("MyApp", "user id: $id")
                     if(this.JWTtoken.isNotEmpty()){
-                         getFamilyId()
+                        // after successful login, get family ID and user dataset.
+                         getFamilyId()  // family dataset will be fetched after family ID is known. in GetFamilyId function
                          getUserDataSet()
                     }
                 } catch (e: Exception) {
@@ -73,10 +75,13 @@ class MyApplication: Application() {
                 }
             },
             onFailure = {
-                Log.d("MyApp", it)
+                Log.d("MyApp", "log in failed: " + it)
             }
         )
     }
+    /**
+     * gets the family ID of the logged in user if available.
+     */
     fun getFamilyId() {
         val headers = if (JWTtoken.isNotEmpty()) {
             mapOf("Authorization" to "Bearer $JWTtoken")
@@ -85,7 +90,7 @@ class MyApplication: Application() {
         HttpUtil.httpGetRequest(
             this.httpClient,
             this,
-            FAMILY_URL,
+            BuildConfig.FAMILY_URL,
             headers = headers,
             onSuccess = { response ->
                 try {
@@ -97,6 +102,7 @@ class MyApplication: Application() {
                     }
                     this.familyId = id
                     if(this.familyId.isNotEmpty()){
+                        // after family ID is known, get the family dataset.
                         getFamilyDataSet()
                     }
                     Log.d("MyApp", "Family ID: $id")
@@ -109,7 +115,9 @@ class MyApplication: Application() {
             }
         )
     }
-
+    /**
+     * if familzy ID is known, gets the family dataset from the server.
+     */
     fun getFamilyDataSet() {
         val headers = if (JWTtoken.isNotEmpty()) {
             mapOf("Authorization" to "Bearer $JWTtoken")
@@ -118,7 +126,7 @@ class MyApplication: Application() {
         HttpUtil.httpGetRequest(
             this.httpClient,
             this,
-            FAMILY_URL + "/" + this.familyId + "/statistics",
+            BuildConfig.FAMILY_URL + "/" + this.familyId + "/statistics",
             headers = headers,
             onSuccess = { response ->
                 try {
@@ -141,7 +149,9 @@ class MyApplication: Application() {
             }
         )
     }
-
+    /**
+     * used to get the user dataset from the server if logged in.
+     */
     fun getUserDataSet() {
         val headers = if (JWTtoken.isNotEmpty()) {
             mapOf("Authorization" to "Bearer $JWTtoken")
@@ -150,7 +160,7 @@ class MyApplication: Application() {
         HttpUtil.httpGetRequest(
             this.httpClient,
             this,
-            USER_URL + "/" + this.userId + "/statistics",
+            BuildConfig.USER_URL + "/" + this.userId + "/statistics",
             headers = headers,
             onSuccess = { response ->
                 try {
