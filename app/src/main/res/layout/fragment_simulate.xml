@@ -60,15 +60,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
+
     <SeekBar
         android:id="@+id/priceRangeBar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_width="166dp"
+        android:layout_height="19dp"
         android:max="999"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/guideline2"
-        app:layout_constraintTop_toBottomOf="@+id/priceRangeText" />
-
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.282" />
 
     <TextView
         android:id="@+id/timepiriodNumber"
@@ -150,16 +153,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/priceRangeText" />
 
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/generateCountInput"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Enter number"
-        android:textSize="14sp"
-        app:layout_constraintBaseline_toBaselineOf="@+id/numberToGenerateText"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/guideline2" />
-
     <TextView
         android:id="@+id/transactionText"
         android:layout_width="0dp"
@@ -195,5 +188,17 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/generateCountInput"
+        android:layout_width="144dp"
+        android:layout_height="39dp"
+        android:hint="Enter number"
+        android:inputType="number"
+        android:textSize="14sp"
+        app:layout_constraintBaseline_toBaselineOf="@+id/numberToGenerateText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/numberToGenerateText" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

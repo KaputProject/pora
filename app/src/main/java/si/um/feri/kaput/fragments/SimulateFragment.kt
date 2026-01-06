@@ -1,20 +1,32 @@
 package si.um.feri.kaput.fragments
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
+import androidx.appcompat.app.AlertDialog
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import org.json.JSONArray
 import org.json.JSONObject
+import si.um.feri.kaput.BuildConfig
 import si.um.feri.kaput.MyApplication
 import si.um.feri.kaput.databinding.FragmentSimulateBinding
 import si.um.feri.kaput.utils.MqttUtil
 import si.um.feri.kaput.classes.SimulationParameters
-import si.um.feri.kaput.models.LocationItem
+import si.um.feri.kaput.models.Location
 import si.um.feri.kaput.models.LocationResponse
+import si.um.feri.kaput.models.Transaction
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+import java.util.UUID
+import kotlin.compareTo
 import kotlin.toString
 
 class SimulateFragment : Fragment() {
@@ -22,6 +34,9 @@ class SimulateFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var app: MyApplication
     private lateinit var simulationParameters: SimulationParameters
+    private var timeRange: Int = 1
+    private var changeAmount: Int = 1
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,6 +77,8 @@ class SimulateFragment : Fragment() {
                 val min = periodRange.first
                 val value = progress + min
                 updateTimePeriodLabel(value)
+                timeRange = value
+
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
@@ -69,10 +86,10 @@ class SimulateFragment : Fragment() {
         })
 
         binding.submitButton.setOnClickListener {
+            val jsonData = StartSimulation()
+            Log.d("SimulateFragment", "Generated JSON data: $jsonData")
             MqttUtil.publish(
-                app.mqttClient,
-                MqttUtil.SIMULATION_TOPIC,
-                "Some random data.... in simulate fragment"
+                app.mqttClient, MqttUtil.SIMULATION_TOPIC, jsonData.toString()
             )
         }
 
@@ -82,6 +99,7 @@ class SimulateFragment : Fragment() {
                 val value = min + progress
                 simulationParameters.updateCurrentPrice(value)
                 updatePriceLabel(value)
+                changeAmount = value
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
@@ -95,6 +113,31 @@ class SimulateFragment : Fragment() {
             )
             showLocationMultiSelectDialog()
         }
+
+        binding.transationSwitch.setOnCheckedChangeListener { _, isChecked ->
+            simulationParameters.switchAmountToggle(isChecked)
+        }
+
+        binding.generateCountInput.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(
+                s: CharSequence?, start: Int, count: Int, after: Int
+            ) {
+            }
+
+            override fun onTextChanged(
+                s: CharSequence?, start: Int, before: Int, count: Int
+            ) {
+                val number = s?.toString()?.toIntOrNull() ?: 0
+                simulationParameters.updateNumberToGenerate(number)
+                Log.d(
+                    "SimulateFragment",
+                    "onTextChanged numberToGenerate = ${simulationParameters.numberToGenerate()}"
+                )
+            }
+
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
     }
 
     private fun initTimePeriodBar() {
@@ -122,16 +165,14 @@ class SimulateFragment : Fragment() {
         val jsonObject: JSONObject = simulationParameters.locationOptions
         val jsonString = jsonObject.toString()
 
-        val moshi =
-            Moshi.Builder().add(com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory())
-                .build()
+        val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
         val adapter = moshi.adapter(LocationResponse::class.java)
 
         val locations = try {
-            adapter.fromJson(jsonString)?.locations ?: emptyList<LocationItem>()
+            adapter.fromJson(jsonString)?.locations ?: emptyList<Location>()
         } catch (e: Exception) {
             Log.e("SimulateFragment", "Error parsing locations JSON", e)
-            emptyList<LocationItem>()
+            emptyList<Location>()
         }
 
         if (locations.isEmpty()) return
@@ -144,45 +185,121 @@ class SimulateFragment : Fragment() {
             simulationParameters.isLocationSelected(id)
         }
 
-        val builder =
-            androidx.appcompat.app.AlertDialog.Builder(requireContext()).setTitle("Izberi lokacije")
-                .setMultiChoiceItems(names, checkedItems) { _, which, isChecked ->
-                    checkedItems[which] = isChecked
-                    simulationParameters.updateSelectedLocations(locations, checkedItems)
+        val builder = AlertDialog.Builder(requireContext()).setTitle("Izberi lokacije")
+            .setMultiChoiceItems(names, checkedItems) { _, which, isChecked ->
+                checkedItems[which] = isChecked
+                simulationParameters.updateSelectedLocations(locations, checkedItems)
 
-                    val selected = locations.filterIndexed { index, _ -> checkedItems[index] }
-                    val selectedNames = if (selected.size > 3) {
-                        selected.take(3).joinToString(", ") { it.name } + " ..."
-                    } else {
-                        selected.joinToString(", ") { it.name }
-                    }
-                    binding.locationInputText.text = selectedNames
-                }.setPositiveButton("OK") { dialog, _ ->
-                    simulationParameters.updateSelectedLocations(locations, checkedItems)
-                    val selected = locations.filterIndexed { index, _ -> checkedItems[index] }
-                    val selectedNames = if (selected.size > 3) {
-                        selected.take(3).joinToString(", ") { it.name } + " ..."
-                    } else {
-                        selected.joinToString(", ") { it.name }
-                    }
-                    binding.locationInputText.text = selectedNames
-                    dialog.dismiss()
-                }.setNegativeButton("Prekliči") { dialog, _ ->
-                    dialog.dismiss()
-                }.setNeutralButton("Select all") { dialog, _ ->
-                    for (i in checkedItems.indices) {
-                        checkedItems[i] = true
-                        val listView = (dialog as androidx.appcompat.app.AlertDialog).listView
-                        listView.setItemChecked(i, true)
-                    }
-                    simulationParameters.updateSelectedLocations(locations, checkedItems)
-                    val selectedNames = if (locations.size > 3) {
-                        locations.take(3).joinToString(", ") { it.name } + " ..."
-                    } else {
-                        locations.joinToString(", ") { it.name }
-                    }
-                    binding.locationInputText.text = selectedNames
+                val selected = locations.filterIndexed { index, _ -> checkedItems[index] }
+                val selectedNames = if (selected.size > 3) {
+                    selected.take(3).joinToString(", ") { it.name } + " ..."
+                } else {
+                    selected.joinToString(", ") { it.name }
                 }
+                binding.locationInputText.text = selectedNames
+            }.setPositiveButton("OK") { dialog, _ ->
+                simulationParameters.updateSelectedLocations(locations, checkedItems)
+                val selected = locations.filterIndexed { index, _ -> checkedItems[index] }
+                val selectedNames = if (selected.size > 3) {
+                    selected.take(3).joinToString(", ") { it.name } + " ..."
+                } else {
+                    selected.joinToString(", ") { it.name }
+                }
+                binding.locationInputText.text = selectedNames
+                dialog.dismiss()
+            }.setNegativeButton("Prekliči") { dialog, _ ->
+                dialog.dismiss()
+            }.setNeutralButton("Select all") { dialog, _ ->
+                for (i in checkedItems.indices) {
+                    checkedItems[i] = true
+                    val listView = (dialog as AlertDialog).listView
+                    listView.setItemChecked(i, true)
+                }
+                simulationParameters.updateSelectedLocations(locations, checkedItems)
+                val selectedNames = if (locations.size > 3) {
+                    locations.take(3).joinToString(", ") { it.name } + " ..."
+                } else {
+                    locations.joinToString(", ") { it.name }
+                }
+                binding.locationInputText.text = selectedNames
+            }
         builder.show()
     }
+
+    fun StartSimulation(): String {
+        val transactions = mutableListOf<Transaction>()
+        val now = Calendar.getInstance()
+        //date format samo za log
+        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+
+        for (i in 1..simulationParameters.numberToGenerate()) {
+            val selectedArray = simulationParameters.selectedLocations
+            if (selectedArray.length() == 0) {
+                continue
+            }
+            val randomIndex = (0 until selectedArray.length()).random()
+            val jsonLoc = selectedArray.getJSONObject(randomIndex)
+
+            val location = Location(
+                _id = jsonLoc.getString("id"),
+                name = jsonLoc.getString("name"),
+                lat = if (jsonLoc.has("lat")) jsonLoc.getDouble("lat") else null,
+                lng = if (jsonLoc.has("lng")) jsonLoc.getDouble("lng") else null,
+            )
+
+            val cal = now.clone() as Calendar
+            if (simulationParameters.FastTestToggle) {
+                val offsetMinutes = (0..timeRange).random()
+                cal.add(Calendar.MINUTE, offsetMinutes)
+            } else {
+                val offsetMonths = (0..timeRange).random()
+                cal.add(Calendar.MONTH, offsetMonths)
+            }
+            val date = cal.time
+            val millis = date.time
+            val formatted = sdf.format(date)
+
+            Log.d("SimulateFragment", "generiran datum $millis ($formatted)")
+
+            val maxAmount = if (changeAmount <= 0) 1 else changeAmount
+            val amount = (1..maxAmount).random().toDouble()
+
+            val outgoing = if (simulationParameters.negativeAmountSwitch) {
+                listOf(true, false).random()
+            } else {
+                true
+            }
+
+            val t1 = Transaction(
+                id = UUID.randomUUID(),
+                user = app.userId,
+                location = location,
+                datetime = date,
+                change = amount,
+                outgoing = outgoing
+            )
+            transactions.add(t1)
+        }
+
+        val jsonArray = JSONArray()
+        transactions.forEach { tx ->
+            val obj = JSONObject().apply {
+                put("id", tx.id.toString())
+                put("user", tx.user)
+                put("location", JSONObject().apply {
+                    put("id", tx.location._id)
+                    put("name", tx.location.name)
+                    put("lat", tx.location.lat)
+                    put("lng", tx.location.lng)
+                })
+                put("datetime", tx.datetime.time)
+                put("change", tx.change)
+                put("outgoing", tx.outgoing)
+            }
+            jsonArray.put(obj)
+        }
+
+        return jsonArray.toString()
+    }
+
 }

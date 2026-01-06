@@ -1,4 +1,4 @@
 package si.um.feri.kaput.models
 data class LocationResponse(
-    val locations: List<LocationItem>
+    val locations: List<Location>
 )

@@ -4,7 +4,7 @@ import android.util.Log
 import org.json.JSONArray
 import org.json.JSONObject
 import si.um.feri.kaput.MyApplication
-import si.um.feri.kaput.models.LocationItem
+import si.um.feri.kaput.models.Location
 
 class SimulationParameters(private val app: MyApplication) {
     var familyToggle: Boolean = false
@@ -26,8 +26,8 @@ class SimulationParameters(private val app: MyApplication) {
         familyToggle = value
     }
 
-    fun switchAmountToggle() {
-        negativeAmountSwitch = !negativeAmountSwitch
+    fun switchAmountToggle(value: Boolean) {
+        negativeAmountSwitch = value
     }
 
     fun switchTestToggle(value: Boolean) {
@@ -50,8 +50,7 @@ class SimulationParameters(private val app: MyApplication) {
         }
 
         Log.d(
-            "SimulationParameters",
-            "Selected locations updated: ${locationsArray.length()} items"
+            "SimulationParameters", "Selected locations updated: ${locationsArray.length()} items"
         )
     }
 
@@ -70,19 +69,24 @@ class SimulationParameters(private val app: MyApplication) {
         currentPrice = value.coerceIn(min, max)
     }
 
-    fun updateSelectedLocations(locations: List<LocationItem>, checked: BooleanArray) {
+    fun updateSelectedLocations(locations: List<Location>, checked: BooleanArray) {
         val array = JSONArray()
         locations.forEachIndexed { index, item ->
             if (checked[index]) {
                 val obj = JSONObject().apply {
                     put("id", item._id)
                     put("name", item.name)
+                    if (item.lat != null) put("lat", item.lat)
+                    if (item.lng != null) put("lng", item.lng)
                 }
                 array.put(obj)
             }
         }
         selectedLocations = array
-
+        Log.d(
+            "SimulationParameters",
+            "Selected locations updated: ${selectedLocations.toString()} items"
+        )
     }
 
     fun isLocationSelected(id: String): Boolean {
