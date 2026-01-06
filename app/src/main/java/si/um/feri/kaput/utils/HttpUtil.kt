@@ -102,6 +102,7 @@ object HttpUtil {
             onFailure("Exception in logInRequest: ${e.message}")
         }
     }
+
     /**
      * Sends a GET request to the specified URL and publishes the response mostly used for connecting to backend server iz spletne
      */

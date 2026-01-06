@@ -12,11 +12,11 @@ import si.um.feri.kaput.utils.MqttUtil
 import si.um.feri.kaput.utils.SettingsUtil
 
 
-
-class MyApplication: Application() {
+class MyApplication : Application() {
     var data: MutableList<Int> = mutableListOf()
     lateinit var mqttClient: MqttAndroidClient
     lateinit var httpClient: OkHttpClient
+
     // storign data after login in the app instance Accessible from other activities and fragments // will be refreshed on each app start
     var JWTtoken: String = ""
     var userId: String = ""
@@ -30,7 +30,9 @@ class MyApplication: Application() {
         SettingsUtil.handleUserUUID(this)
         data = mutableListOf(1, 2, 3, 4, 5)
 
-        mqttClient = MqttUtil.buildClient(this, SettingsUtil.getUserUUID(this) ?: System.currentTimeMillis().toString())
+        mqttClient = MqttUtil.buildClient(
+            this, SettingsUtil.getUserUUID(this) ?: System.currentTimeMillis().toString()
+        )
         httpClient = HttpUtil.buildClient()
         // log in to server to get JWT token. Further requests done after successful login in log in function.
         loginToServer()
@@ -40,7 +42,7 @@ class MyApplication: Application() {
      * Used to log in to the server and retrieve JWT token.
      */
     fun loginToServer() {
-      val jsonBody: RequestBody = """
+        val jsonBody: RequestBody = """
                     {
                         "username": "${BuildConfig.USER_NAME}",
                         "password": "${BuildConfig.PASSWORD}"
@@ -65,10 +67,10 @@ class MyApplication: Application() {
                     this.userId = id
                     Log.d("MyApp", "Token: $token")
                     Log.d("MyApp", "user id: $id")
-                    if(this.JWTtoken.isNotEmpty()){
+                    if (this.JWTtoken.isNotEmpty()) {
                         // after successful login, get family ID and user dataset.
-                         getFamilyId()  // family dataset will be fetched after family ID is known. in GetFamilyId function
-                         getUserDataSet()
+                        getFamilyId()  // family dataset will be fetched after family ID is known. in GetFamilyId function
+                        getUserDataSet()
                     }
                 } catch (e: Exception) {
                     Log.d("MyApp", "JSON parse error: ${e.message}")
@@ -76,9 +78,9 @@ class MyApplication: Application() {
             },
             onFailure = {
                 Log.d("MyApp", "log in failed: " + it)
-            }
-        )
+            })
     }
+
     /**
      * gets the family ID of the logged in user if available.
      */
@@ -101,7 +103,7 @@ class MyApplication: Application() {
                         json.optString("_id", "")
                     }
                     this.familyId = id
-                    if(this.familyId.isNotEmpty()){
+                    if (this.familyId.isNotEmpty()) {
                         // after family ID is known, get the family dataset.
                         getFamilyDataSet()
                     }
@@ -112,9 +114,9 @@ class MyApplication: Application() {
             },
             onFailure = {
                 Log.d("MyApp", it)
-            }
-        )
+            })
     }
+
     /**
      * if familzy ID is known, gets the family dataset from the server.
      */
@@ -146,9 +148,9 @@ class MyApplication: Application() {
             },
             onFailure = {
                 Log.d("MyApp", it)
-            }
-        )
+            })
     }
+
     /**
      * used to get the user dataset from the server if logged in.
      */
@@ -181,7 +183,6 @@ class MyApplication: Application() {
             },
             onFailure = {
                 Log.d("MyApp", it)
-            }
-        )
+            })
     }
 }

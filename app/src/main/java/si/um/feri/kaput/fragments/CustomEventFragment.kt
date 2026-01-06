@@ -24,8 +24,7 @@ class CustomEventFragment : Fragment() {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentCustomEventBinding.inflate(inflater, container, false)
         app = requireActivity().application as MyApplication
@@ -41,7 +40,11 @@ class CustomEventFragment : Fragment() {
     private fun initButtons() {
         //TODO: tuki not na tak nacin dodata funkcionalnost, mora bit string...
         binding.submitButton.setOnClickListener {
-            MqttUtil.publish(app.mqttClient, MqttUtil.EVENT_TOPIC, "Some random data.... in custom event fragment")
+            MqttUtil.publish(
+                app.mqttClient,
+                MqttUtil.EVENT_TOPIC,
+                "Some random data.... in custom event fragment"
+            )
         }
     }
 }

@@ -6,43 +6,82 @@ import org.json.JSONObject
 import si.um.feri.kaput.MyApplication
 import si.um.feri.kaput.models.Location
 
-class SimulationParameters(private val app: MyApplication) {
-    var familyToggle: Boolean = false
-    var negativeAmountSwitch: Boolean = false
-    var FastTestToggle: Boolean = false
-    var timePeriod: Pair<Int, Int> = Pair(1, 12)
-    var fastTestTimePeriod: Pair<Int, Int> = Pair(1, 60)
-    var selectedLocations: JSONArray = JSONArray()
-    var locationOptions: JSONObject = JSONObject()
+data class SimulationToggles(
+    var family: Boolean = false,
+    var allowNegativeAmount: Boolean = false,
+    var fastTest: Boolean = false
+)
 
-    var priceRange: Pair<Int, Int> = Pair(1, 1000)
+data class TimeRanges(
+    val normal: Pair<Int, Int> = 1 to 12, val fast: Pair<Int, Int> = 1 to 60
+) {
+    fun current(isFast: Boolean): Pair<Int, Int> = if (isFast) fast else normal
+}
+
+class SimulationParameters(private val app: MyApplication) {
+
+    private val toggles = SimulationToggles()
+    private val timeRanges = TimeRanges()
+
+    val FastTestToggle: Boolean
+        get() = toggles.fastTest
+
+    val negativeAmountSwitch: Boolean
+        get() = toggles.allowNegativeAmount
+
+    val familyToggle: Boolean
+        get() = toggles.family
+
+    var selectedLocations: JSONArray = JSONArray()
+        private set
+
+    var locationOptions: JSONObject = JSONObject()
+        private set
+
+    var priceRange: Pair<Int, Int> = 1 to 1000
+        set(value) {
+            field = value
+            currentPrice = currentPrice.coerceIn(value.first, value.second)
+        }
+
     var currentPrice: Int = priceRange.first
+        private set
+
     var numberToGenerate: Int = 0
 
     val currentTimePeriod: Pair<Int, Int>
-        get() = if (FastTestToggle) fastTestTimePeriod else timePeriod
+        get() = timeRanges.current(toggles.fastTest)
+
+    // endregion
+
+    // region toggle helpers (backwards compatible)
 
     fun switchFamilyToggle(value: Boolean) {
-        familyToggle = value
-    }
-
-    fun switchAmountToggle(value: Boolean) {
-        negativeAmountSwitch = value
+        toggles.family = value
     }
 
     fun switchTestToggle(value: Boolean) {
-        FastTestToggle = value
+        toggles.fastTest = value
     }
 
+    fun switchAmountToggle(value: Boolean) {
+        toggles.allowNegativeAmount = value
+    }
+
+    fun setToggle(
+        family: Boolean? = null, allowNegative: Boolean? = null, fastTest: Boolean? = null
+    ) {
+        family?.let { toggles.family = it }
+        allowNegative?.let { toggles.allowNegativeAmount = it }
+        fastTest?.let { toggles.fastTest = it }
+    }
+
+
     fun setLocationOptions() {
-        val locationsArray: JSONArray = if (familyToggle) {
-            val dataSet = app.familyDataSet
-            val statistics = dataSet.optJSONObject("statistics")
-            statistics?.optJSONArray("locations") ?: JSONArray()
+        val locationsArray: JSONArray = if (toggles.family) {
+            app.familyDataSet.optJSONObject("statistics")?.optJSONArray("locations") ?: JSONArray()
         } else {
-            val dataSet = app.UserDataSet
-            val user = dataSet.optJSONObject("user")
-            user?.optJSONArray("locations") ?: JSONArray()
+            app.UserDataSet.optJSONObject("user")?.optJSONArray("locations") ?: JSONArray()
         }
 
         locationOptions = JSONObject().apply {
@@ -54,38 +93,32 @@ class SimulationParameters(private val app: MyApplication) {
         )
     }
 
-
     fun updateNumberToGenerate(number: Int) {
         numberToGenerate = number
     }
 
-    fun numberToGenerate(): Int {
-        return numberToGenerate
-    }
+    fun numberToGenerate(): Int = numberToGenerate
 
     fun updateCurrentPrice(value: Int) {
-        val min = priceRange.first
-        val max = priceRange.second
-        currentPrice = value.coerceIn(min, max)
+        currentPrice = value.coerceIn(priceRange.first, priceRange.second)
     }
 
     fun updateSelectedLocations(locations: List<Location>, checked: BooleanArray) {
         val array = JSONArray()
         locations.forEachIndexed { index, item ->
-            if (checked[index]) {
+            if (index < checked.size && checked[index]) {
                 val obj = JSONObject().apply {
                     put("id", item._id)
                     put("name", item.name)
-                    if (item.lat != null) put("lat", item.lat)
-                    if (item.lng != null) put("lng", item.lng)
+                    item.lat?.let { put("lat", it) }
+                    item.lng?.let { put("lng", it) }
                 }
                 array.put(obj)
             }
         }
         selectedLocations = array
         Log.d(
-            "SimulationParameters",
-            "Selected locations updated: ${selectedLocations.toString()} items"
+            "SimulationParameters", "Selected locations updated: $selectedLocations"
         )
     }
 

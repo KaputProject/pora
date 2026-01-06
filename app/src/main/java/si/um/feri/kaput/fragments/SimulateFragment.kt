@@ -14,7 +14,6 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import org.json.JSONArray
 import org.json.JSONObject
-import si.um.feri.kaput.BuildConfig
 import si.um.feri.kaput.MyApplication
 import si.um.feri.kaput.databinding.FragmentSimulateBinding
 import si.um.feri.kaput.utils.MqttUtil
@@ -26,8 +25,6 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import java.util.UUID
-import kotlin.compareTo
-import kotlin.toString
 
 class SimulateFragment : Fragment() {
     private var _binding: FragmentSimulateBinding? = null
@@ -89,7 +86,7 @@ class SimulateFragment : Fragment() {
             val jsonData = StartSimulation()
             Log.d("SimulateFragment", "Generated JSON data: $jsonData")
             MqttUtil.publish(
-                app.mqttClient, MqttUtil.SIMULATION_TOPIC, jsonData.toString()
+                app.mqttClient, MqttUtil.SIMULATION_TOPIC, jsonData
             )
         }
 
@@ -108,9 +105,6 @@ class SimulateFragment : Fragment() {
 
         binding.locationInputText.setOnClickListener {
             simulationParameters.setLocationOptions()
-            Log.d(
-                "SimulateFragment", "Location options: ${simulationParameters.locationOptions}"
-            )
             showLocationMultiSelectDialog()
         }
 
@@ -129,17 +123,15 @@ class SimulateFragment : Fragment() {
             ) {
                 val number = s?.toString()?.toIntOrNull() ?: 0
                 simulationParameters.updateNumberToGenerate(number)
-                Log.d(
-                    "SimulateFragment",
-                    "onTextChanged numberToGenerate = ${simulationParameters.numberToGenerate()}"
-                )
             }
 
             override fun afterTextChanged(s: Editable?) {}
         })
 
     }
+    // region helpers
 
+    // initialize time period bar based on simulation parameters
     private fun initTimePeriodBar() {
         val periodRange = simulationParameters.currentTimePeriod
         val min = periodRange.first
@@ -148,6 +140,7 @@ class SimulateFragment : Fragment() {
         binding.timePeriodBar.progress = 0
     }
 
+    //posodobi label za časovno obdobje (mesece ali minute)
     private fun updateTimePeriodLabel(value: Int) {
         val label = if (simulationParameters.FastTestToggle) {
             "$value min"
@@ -157,35 +150,43 @@ class SimulateFragment : Fragment() {
         binding.timepiriodNumber.text = label
     }
 
+    //posodobi label za znesek
     private fun updatePriceLabel(value: Int) {
         binding.priceRangeNumber.text = "${value}€"
     }
 
+    // prikaže dialog za večkratno izbiro lokacij
     private fun showLocationMultiSelectDialog() {
+        // vse lokacije iz simulationParameters
         val jsonObject: JSONObject = simulationParameters.locationOptions
         val jsonString = jsonObject.toString()
-
+        // parse JSON using Moshi (neka knjiznica za JSON parsing recommended by copilot)
         val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
         val adapter = moshi.adapter(LocationResponse::class.java)
 
         val locations = try {
+            // parse locations from JSON
             adapter.fromJson(jsonString)?.locations ?: emptyList<Location>()
         } catch (e: Exception) {
             Log.e("SimulateFragment", "Error parsing locations JSON", e)
             emptyList<Location>()
         }
-
+        // če ni lokacij, ne prikaži dialoga oz če je kaj šlo narobe pri parsiranju
         if (locations.isEmpty()) return
-
+        // pripravi imena lokacij za prikaz v dialogu
         val names = locations.map { it.name }.toTypedArray()
 
-        // Prefill from previously selectedLocations
+        // Prefill from previously selectedLocations stored in simulationParameters
         val checkedItems = BooleanArray(names.size) { index ->
             val id = locations[index]._id
             simulationParameters.isLocationSelected(id)
         }
 
+        // shranimo trenutno (prejšnje) stanje, da ga lahko povrnemo ob preklicu
+        val previousCheckedItems = checkedItems.copyOf()
+
         val builder = AlertDialog.Builder(requireContext()).setTitle("Izberi lokacije")
+            // multi choice items za lokacije
             .setMultiChoiceItems(names, checkedItems) { _, which, isChecked ->
                 checkedItems[which] = isChecked
                 simulationParameters.updateSelectedLocations(locations, checkedItems)
@@ -197,7 +198,8 @@ class SimulateFragment : Fragment() {
                     selected.joinToString(", ") { it.name }
                 }
                 binding.locationInputText.text = selectedNames
-            }.setPositiveButton("OK") { dialog, _ ->
+            } // gumb za OK v dialogu shrani izbiro v simulationParameters
+            .setPositiveButton("OK") { dialog, _ ->
                 simulationParameters.updateSelectedLocations(locations, checkedItems)
                 val selected = locations.filterIndexed { index, _ -> checkedItems[index] }
                 val selectedNames = if (selected.size > 3) {
@@ -207,9 +209,22 @@ class SimulateFragment : Fragment() {
                 }
                 binding.locationInputText.text = selectedNames
                 dialog.dismiss()
-            }.setNegativeButton("Prekliči") { dialog, _ ->
+            } // gumb za preklic dialoga povrne izbiro na prejšnjo
+            .setNegativeButton("Prekliči") { dialog, _ ->
+                // povrnemo prejšnje stanje v simulationParameters
+                simulationParameters.updateSelectedLocations(locations, previousCheckedItems)
+
+                val selected = locations.filterIndexed { index, _ -> previousCheckedItems[index] }
+                val selectedNames = if (selected.size > 3) {
+                    selected.take(3).joinToString(", ") { it.name } + " ..."
+                } else {
+                    selected.joinToString(", ") { it.name }
+                }
+                binding.locationInputText.text = selectedNames
+
                 dialog.dismiss()
-            }.setNeutralButton("Select all") { dialog, _ ->
+            } // gumb za izbiro vseh lokacij
+            .setNeutralButton("Select all") { dialog, _ ->
                 for (i in checkedItems.indices) {
                     checkedItems[i] = true
                     val listView = (dialog as AlertDialog).listView
@@ -227,26 +242,27 @@ class SimulateFragment : Fragment() {
     }
 
     fun StartSimulation(): String {
+        // ustvari seznam transakcij glede na nastavitve v simulationParameters
         val transactions = mutableListOf<Transaction>()
         val now = Calendar.getInstance()
         //date format samo za log
         val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-
+        // zanka za generiranje transakcij
         for (i in 1..simulationParameters.numberToGenerate()) {
             val selectedArray = simulationParameters.selectedLocations
             if (selectedArray.length() == 0) {
                 continue
             }
+            //naključno izberi lokacijo iz izbranih lokacij (obdržim koristne podatke)
             val randomIndex = (0 until selectedArray.length()).random()
             val jsonLoc = selectedArray.getJSONObject(randomIndex)
-
             val location = Location(
                 _id = jsonLoc.getString("id"),
                 name = jsonLoc.getString("name"),
                 lat = if (jsonLoc.has("lat")) jsonLoc.getDouble("lat") else null,
                 lng = if (jsonLoc.has("lng")) jsonLoc.getDouble("lng") else null,
             )
-
+            // generiraj naključen datum znotraj časovnega razpona (now till now + timeRange)
             val cal = now.clone() as Calendar
             if (simulationParameters.FastTestToggle) {
                 val offsetMinutes = (0..timeRange).random()
@@ -258,9 +274,8 @@ class SimulateFragment : Fragment() {
             val date = cal.time
             val millis = date.time
             val formatted = sdf.format(date)
-
             Log.d("SimulateFragment", "generiran datum $millis ($formatted)")
-
+            // generiraj naključen znesek do changeAmount
             val maxAmount = if (changeAmount <= 0) 1 else changeAmount
             val amount = (1..maxAmount).random().toDouble()
 
@@ -269,7 +284,7 @@ class SimulateFragment : Fragment() {
             } else {
                 true
             }
-
+            // creacija transakcije z generiranimi podatki in dodajanje v seznam
             val t1 = Transaction(
                 id = UUID.randomUUID().toString(),
                 user = app.userId,
@@ -280,7 +295,7 @@ class SimulateFragment : Fragment() {
             )
             transactions.add(t1)
         }
-
+        // pretvori seznam transakcij v JSON niz in vrne string
         val jsonArray = JSONArray()
         transactions.forEach { tx ->
             val obj = JSONObject().apply {
