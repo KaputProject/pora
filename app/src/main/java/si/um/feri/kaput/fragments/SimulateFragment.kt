@@ -271,10 +271,10 @@ class SimulateFragment : Fragment() {
             }
 
             val t1 = Transaction(
-                id = UUID.randomUUID(),
+                id = UUID.randomUUID().toString(),
                 user = app.userId,
                 location = location,
-                datetime = date,
+                datetime = millis,
                 change = amount,
                 outgoing = outgoing
             )
@@ -284,7 +284,7 @@ class SimulateFragment : Fragment() {
         val jsonArray = JSONArray()
         transactions.forEach { tx ->
             val obj = JSONObject().apply {
-                put("id", tx.id.toString())
+                put("id", tx.id)
                 put("user", tx.user)
                 put("location", JSONObject().apply {
                     put("id", tx.location._id)
@@ -292,7 +292,7 @@ class SimulateFragment : Fragment() {
                     put("lat", tx.location.lat)
                     put("lng", tx.location.lng)
                 })
-                put("datetime", tx.datetime.time)
+                put("datetime", tx.datetime)
                 put("change", tx.change)
                 put("outgoing", tx.outgoing)
             }

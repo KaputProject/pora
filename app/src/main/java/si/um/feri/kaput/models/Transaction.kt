@@ -1,13 +1,13 @@
 package si.um.feri.kaput.models
 
-import java.util.Date
-import java.util.UUID
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class Transaction(
-    val id: UUID? = null,
-    val user: String? = null,
+    val id: String,
+    val user: String,
     val location: Location,
-    val datetime: Date = Date(),
+    val datetime: Long,   // millis since epoch
     val change: Double = 0.0,
     val outgoing: Boolean = true,
 )
