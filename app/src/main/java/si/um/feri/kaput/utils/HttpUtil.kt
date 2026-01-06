@@ -6,7 +6,6 @@ import android.widget.Toast
 import info.mqtt.android.service.MqttAndroidClient
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 
 object HttpUtil {
@@ -45,6 +44,43 @@ object HttpUtil {
         } catch (e: Exception) {
             Log.d(TAG, "Exception in sendPostRequest: ${e.message}")
             Toast.makeText(context, "Error sending POST request: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+    fun httpPostRequest(
+        client: OkHttpClient,
+        context: Context,
+        url: String,
+        data: RequestBody,
+        onSuccess: (String) -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        try {
+            val request = Request.Builder()
+                .url(url)
+                .post(data)
+                .build()
+
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    Log.d(TAG, "HTTP POST request failed: ${e.message}")
+                    onFailure("HTTP POST request failed: ${e.message}")
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    val responseBody = response.body?.string()
+                    if (response.isSuccessful && responseBody != null) {
+                        Log.d(TAG, "HTTP POST request successful.")
+                        onSuccess(responseBody)
+                    } else {
+                        Log.d(TAG, "HTTP POST request failed with status code: ${response.code}")
+                        onFailure("HTTP POST request failed with status code: ${response.code}")
+                    }
+                }
+            })
+        } catch (e: Exception) {
+            Log.d(TAG, "Exception in logInRequest: ${e.message}")
+            Toast.makeText(context, "Error sending POST request: ${e.message}", Toast.LENGTH_LONG).show()
+            onFailure("Exception in logInRequest: ${e.message}")
         }
     }
 }

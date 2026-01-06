@@ -1,6 +1,7 @@
 package si.um.feri.kaput.fragments
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -8,6 +9,8 @@ import android.view.ViewGroup
 import si.um.feri.kaput.MyApplication
 import si.um.feri.kaput.databinding.FragmentSimulateBinding
 import si.um.feri.kaput.utils.MqttUtil
+import si.um.feri.kaput.BuildConfig
+
 
 /**
  * A simple [Fragment] subclass.
@@ -29,7 +32,9 @@ class SimulateFragment : Fragment() {
     ): View {
         _binding = FragmentSimulateBinding.inflate(inflater, container, false)
         app = requireActivity().application as MyApplication
+        Log.d("SimulateFragment", app.JWTtoken)
         return binding.root
+
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
