@@ -177,7 +177,7 @@ class SimulateFragment : Fragment() {
         // če ni lokacij, ne prikaži dialoga oz če je kaj šlo narobe pri parsiranju
         if (locations.isEmpty()) return
         // pripravi imena lokacij za prikaz v dialogu
-        val names = locations.map { it.name }.toTypedArray()
+        val names = locations.map { it.identifier }.toTypedArray()
 
         // Prefill from previously selectedLocations stored in simulationParameters
         val checkedItems = BooleanArray(names.size) { index ->
@@ -196,9 +196,9 @@ class SimulateFragment : Fragment() {
 
                 val selected = locations.filterIndexed { index, _ -> checkedItems[index] }
                 val selectedNames = if (selected.size > 3) {
-                    selected.take(3).joinToString(", ") { it.name } + " ..."
+                    selected.take(3).joinToString(", ") { it.identifier.toString() } + " ..."
                 } else {
-                    selected.joinToString(", ") { it.name }
+                    selected.joinToString(", ") { it.identifier.toString() }
                 }
                 binding.locationInputText.text = selectedNames
             } // gumb za OK v dialogu shrani izbiro v simulationParameters
@@ -206,9 +206,9 @@ class SimulateFragment : Fragment() {
                 simulationParameters.updateSelectedLocations(locations, checkedItems)
                 val selected = locations.filterIndexed { index, _ -> checkedItems[index] }
                 val selectedNames = if (selected.size > 3) {
-                    selected.take(3).joinToString(", ") { it.name } + " ..."
+                    selected.take(3).joinToString(", ") { it.identifier.toString() } + " ..."
                 } else {
-                    selected.joinToString(", ") { it.name }
+                    selected.joinToString(", ") { it.identifier.toString() }
                 }
                 binding.locationInputText.text = selectedNames
                 dialog.dismiss()
@@ -219,9 +219,9 @@ class SimulateFragment : Fragment() {
 
                 val selected = locations.filterIndexed { index, _ -> previousCheckedItems[index] }
                 val selectedNames = if (selected.size > 3) {
-                    selected.take(3).joinToString(", ") { it.name } + " ..."
+                    selected.take(3).joinToString(", ") { it.identifier.toString() } + " ..."
                 } else {
-                    selected.joinToString(", ") { it.name }
+                    selected.joinToString(", ") { it.identifier.toString() }
                 }
                 binding.locationInputText.text = selectedNames
 
@@ -235,9 +235,9 @@ class SimulateFragment : Fragment() {
                 }
                 simulationParameters.updateSelectedLocations(locations, checkedItems)
                 val selectedNames = if (locations.size > 3) {
-                    locations.take(3).joinToString(", ") { it.name } + " ..."
+                    locations.take(3).joinToString(", ") { it.identifier.toString() } + " ..."
                 } else {
-                    locations.joinToString(", ") { it.name }
+                    locations.joinToString(", ") { it.identifier.toString() }
                 }
                 binding.locationInputText.text = selectedNames
             }
@@ -245,26 +245,25 @@ class SimulateFragment : Fragment() {
     }
 
     fun StartSimulation(): String {
-        val transactions = mutableListOf<Transaction>()
+        val transactions = mutableListOf<JSONObject>()
         val now = Calendar.getInstance()
-        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+
+        // Pridobi družinske člane ali samo trenutnega uporabnika
+        val members = simulationParameters.familyMembers
 
         for (i in 1..simulationParameters.numberToGenerate()) {
             val selectedArray = simulationParameters.selectedLocations
-            if (selectedArray.length() == 0) {
+            if (selectedArray.length() == 0 || members.length() == 0) {
                 continue
             }
 
             val randomIndex = (0 until selectedArray.length()).random()
             val jsonLoc = selectedArray.getJSONObject(randomIndex)
 
-            val location = Location(
-                _id = jsonLoc.getString("id"),
-                name = jsonLoc.getString("name"),
-                lat = if (jsonLoc.has("lat")) jsonLoc.getDouble("lat") else null,
-                lng = if (jsonLoc.has("lng")) jsonLoc.getDouble("lng") else null,
-                userId = if (jsonLoc.has("userId")) jsonLoc.getString("userId") else null
-            )
+            // Naključno izberi družinskega člana
+            val randomMemberIndex = (0 until members.length()).random()
+            val selectedMember = members.getJSONObject(randomMemberIndex)
 
             val cal = now.clone() as Calendar
             if (simulationParameters.FastTestToggle) {
@@ -275,9 +274,7 @@ class SimulateFragment : Fragment() {
                 cal.add(Calendar.MONTH, offsetMonths)
             }
             val date = cal.time
-            val millis = date.time
             val formatted = sdf.format(date)
-            Log.d("SimulateFragment", "generiran datum $millis ($formatted)")
 
             val maxAmount = if (changeAmount <= 0) 1 else changeAmount
             val amount = (1..maxAmount).random().toDouble()
@@ -288,37 +285,45 @@ class SimulateFragment : Fragment() {
                 true
             }
 
-            val t1 = Transaction(
-                id = UUID.randomUUID().toString(),
-                user = app.databaseUtil.userId,
-                location = location,
-                datetime = millis,
-                change = amount,
-                outgoing = outgoing
-            )
-            transactions.add(t1)
+            val inflow = if (outgoing) amount else 0.0
+            val outflow = if (outgoing) 0.0 else amount
+
+            val transactionObj = JSONObject().apply {
+                put("_id", UUID.randomUUID().toString())
+                put("datetime", formatted)
+                put("location", JSONObject().apply {
+                    put("_id", jsonLoc.getString("id"))
+                    put("lat", if (jsonLoc.has("lat")) jsonLoc.getDouble("lat") else null)
+                    put("lng", if (jsonLoc.has("lng")) jsonLoc.getDouble("lng") else null)
+                    put(
+                        "identifier",
+                        if (jsonLoc.has("identifier")) jsonLoc.getString("identifier") else null
+                    )
+                    put(
+                        "address",
+                        if (jsonLoc.has("address")) jsonLoc.getString("address") else null
+                    )
+                    put("users", JSONArray().apply {
+                        put(JSONObject().apply {
+                            put("_id", selectedMember.optString("_id") ?: "unknown")
+                            put("username", selectedMember.optString("username") ?: "unknown")
+                            put("numbOftrans", 1)
+                            put("inflow", inflow)
+                            put("outflow", outflow)
+                        })
+                    })
+                })
+            }
+            transactions.add(transactionObj)
         }
 
         val jsonArray = JSONArray()
         transactions.forEach { tx ->
-            val obj = JSONObject().apply {
-                put("id", tx.id)
-                put("user", tx.user)
-                put("location", JSONObject().apply {
-                    put("id", tx.location._id)
-                    put("name", tx.location.name)
-                    put("lat", tx.location.lat)
-                    put("lng", tx.location.lng)
-                    put("userId", tx.location.userId)
-                })
-                put("datetime", tx.datetime)
-                put("change", tx.change)
-                put("outgoing", tx.outgoing)
-            }
-            jsonArray.put(obj)
+            jsonArray.put(tx)
         }
 
         return jsonArray.toString()
     }
+
 
 }

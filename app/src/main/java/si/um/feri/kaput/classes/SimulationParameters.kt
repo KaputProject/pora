@@ -5,6 +5,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import si.um.feri.kaput.MyApplication
 import si.um.feri.kaput.models.Location
+import kotlin.toString
 
 data class SimulationToggles(
     var family: Boolean = false,
@@ -52,9 +53,22 @@ class SimulationParameters(private val app: MyApplication) {
     val currentTimePeriod: Pair<Int, Int>
         get() = timeRanges.current(toggles.fastTest)
 
-    // endregion
+    val familyMembers: JSONArray
+        get() {
+            return if (toggles.family) {
+                app.databaseUtil.familyDataSet.optJSONArray("familyMembers") ?: JSONArray()
+            } else {
+                JSONArray().apply {
+                    put(JSONObject().apply {
+                        put("_id", app.databaseUtil.userId)
+                        put("username", app.databaseUtil.username)
+                    })
+                }
+            }
+        }
 
-    // region toggle helpers (backwards compatible)
+    val UserLocations: JSONArray =
+        app.databaseUtil.UserDataSet.optJSONObject("user")?.optJSONArray("locations") ?: JSONArray()
 
     fun switchFamilyToggle(value: Boolean) {
         toggles.family = value
@@ -78,42 +92,36 @@ class SimulationParameters(private val app: MyApplication) {
 
     fun setLocationOptions() {
         val locationsArray: JSONArray = if (toggles.family) {
-            val result = JSONArray()
-            val usersArray =
-                app.databaseUtil.familyDataSet.optJSONObject("statistics")?.optJSONArray("users")
-                    ?: JSONArray()
-
-            for (i in 0 until usersArray.length()) {
-                val userObj = usersArray.optJSONObject(i) ?: continue
-                val userId = userObj.optString("_id", null) ?: continue
-                val userName = userObj.optString("name", "")
-
-                val userLocations = userObj.optJSONArray("locations") ?: continue
-                for (j in 0 until userLocations.length()) {
-                    val locObj = userLocations.optJSONObject(j) ?: continue
-                    val merged = JSONObject(locObj.toString()).apply {
-                        put("userId", userId)    // TU SE DODA userId
-                        put("userName", userName)
-                    }
-                    result.put(merged)
-                }
+            val stats = app.databaseUtil.familyDataSet.opt("statistics")
+            when (stats) {
+                is JSONArray -> stats
+                is JSONObject -> stats.optJSONArray("locations") ?: JSONArray()
+                else -> JSONArray()
             }
-            result
         } else {
-            val userLocations =
-                app.databaseUtil.UserDataSet.optJSONObject("user")?.optJSONArray("locations")
-                    ?: JSONArray()
+            app.databaseUtil.UserDataSet.optJSONObject("user")?.optJSONArray("locations")
+                ?: JSONArray()
+        }
 
-            userLocations
+        for (i in 0 until locationsArray.length()) {
+            val loc = locationsArray.getJSONObject(i)
+            Log.d(
+                "SimulationParameters", "Location ${loc.optString("identifier")} has address: ${
+                    loc.optString(
+                        "address", "NO ADDRESS"
+                    )
+                }"
+            )
         }
 
         locationOptions = JSONObject().apply {
             put("locations", locationsArray)
         }
         Log.d(
-            "SimulationParameters", "Location options updated: ${locationsArray.length()} items"
+            "SimulationParameters", "Location options updated: ${locationsArray.toString()}"
         )
     }
+
 
     fun updateNumberToGenerate(number: Int) {
         numberToGenerate = number
@@ -125,17 +133,17 @@ class SimulationParameters(private val app: MyApplication) {
         currentPrice = value.coerceIn(priceRange.first, priceRange.second)
     }
 
-    // kotlin
     fun updateSelectedLocations(locations: List<Location>, checked: BooleanArray) {
         val array = JSONArray()
         locations.forEachIndexed { index, item ->
             if (index < checked.size && checked[index]) {
                 val obj = JSONObject().apply {
                     put("id", item._id)
-                    put("name", item.name)
+                    put("identifier", item.identifier)
                     item.lat?.let { put("lat", it) }
                     item.lng?.let { put("lng", it) }
                     item.userId?.let { put("userId", it) }
+                    item.address?.let { put("address", it) }  // Dodaj naslov
                 }
                 array.put(obj)
             }
@@ -145,7 +153,6 @@ class SimulationParameters(private val app: MyApplication) {
             "SimulationParameters", "Selected locations updated: $selectedLocations"
         )
     }
-
 
     fun isLocationSelected(id: String): Boolean {
         for (i in 0 until selectedLocations.length()) {
