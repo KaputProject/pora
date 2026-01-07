@@ -5,6 +5,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import si.um.feri.kaput.MyApplication
 import si.um.feri.kaput.models.Location
+import si.um.feri.kaput.utils.DatabaseUtil
+import kotlin.toString
 
 data class SimulationToggles(
     var family: Boolean = false,
@@ -58,6 +60,8 @@ class SimulationParameters(private val app: MyApplication) {
 
     fun switchFamilyToggle(value: Boolean) {
         toggles.family = value
+        if (toggles.family) {
+        }
     }
 
     fun switchTestToggle(value: Boolean) {
@@ -76,20 +80,42 @@ class SimulationParameters(private val app: MyApplication) {
         fastTest?.let { toggles.fastTest = it }
     }
 
-
     fun setLocationOptions() {
         val locationsArray: JSONArray = if (toggles.family) {
-            app.databaseUtil.familyDataSet.optJSONObject("statistics")?.optJSONArray("locations") ?: JSONArray()
+            val result = JSONArray()
+            val usersArray =
+                app.databaseUtil.familyDataSet.optJSONObject("statistics")?.optJSONArray("users")
+                    ?: JSONArray()
+
+            for (i in 0 until usersArray.length()) {
+                val userObj = usersArray.optJSONObject(i) ?: continue
+                val userId = userObj.optString("_id", null) ?: continue
+                val userName = userObj.optString("name", "")
+
+                val userLocations = userObj.optJSONArray("locations") ?: continue
+                for (j in 0 until userLocations.length()) {
+                    val locObj = userLocations.optJSONObject(j) ?: continue
+                    val merged = JSONObject(locObj.toString()).apply {
+                        put("userId", userId)    // TU SE DODA userId
+                        put("userName", userName)
+                    }
+                    result.put(merged)
+                }
+            }
+            result
         } else {
-            app.databaseUtil.UserDataSet.optJSONObject("user")?.optJSONArray("locations") ?: JSONArray()
+            val userLocations =
+                app.databaseUtil.UserDataSet.optJSONObject("user")?.optJSONArray("locations")
+                    ?: JSONArray()
+
+            userLocations
         }
 
         locationOptions = JSONObject().apply {
             put("locations", locationsArray)
         }
-
         Log.d(
-            "SimulationParameters", "Selected locations updated: ${locationsArray.length()} items"
+            "SimulationParameters", "Location options updated: ${locationsArray.length()} items"
         )
     }
 
@@ -103,6 +129,7 @@ class SimulationParameters(private val app: MyApplication) {
         currentPrice = value.coerceIn(priceRange.first, priceRange.second)
     }
 
+    // kotlin
     fun updateSelectedLocations(locations: List<Location>, checked: BooleanArray) {
         val array = JSONArray()
         locations.forEachIndexed { index, item ->
@@ -112,6 +139,7 @@ class SimulationParameters(private val app: MyApplication) {
                     put("name", item.name)
                     item.lat?.let { put("lat", it) }
                     item.lng?.let { put("lng", it) }
+                    item.userId?.let { put("userId", it) }
                 }
                 array.put(obj)
             }
@@ -121,6 +149,7 @@ class SimulationParameters(private val app: MyApplication) {
             "SimulationParameters", "Selected locations updated: $selectedLocations"
         )
     }
+
 
     fun isLocationSelected(id: String): Boolean {
         for (i in 0 until selectedLocations.length()) {

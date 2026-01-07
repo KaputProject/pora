@@ -112,6 +112,7 @@ class DatabaseUtil(
             onSuccess = { response ->
                 try {
                     this.familyDataSet = JSONObject(response)
+                    Log.d("MyApp", "Family data set retrieved." + familyDataSet.toString())
                 } catch (e: Exception) {
                     Log.d("MyApp", "getFamilyDataSet error: ${e.message}")
                 }

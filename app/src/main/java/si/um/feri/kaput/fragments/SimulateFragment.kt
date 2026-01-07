@@ -25,6 +25,9 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import java.util.UUID
+import kotlin.compareTo
+import kotlin.text.format
+import kotlin.toString
 
 class SimulateFragment : Fragment() {
     private var _binding: FragmentSimulateBinding? = null
@@ -242,27 +245,27 @@ class SimulateFragment : Fragment() {
     }
 
     fun StartSimulation(): String {
-        // ustvari seznam transakcij glede na nastavitve v simulationParameters
         val transactions = mutableListOf<Transaction>()
         val now = Calendar.getInstance()
-        //date format samo za log
         val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-        // zanka za generiranje transakcij
+
         for (i in 1..simulationParameters.numberToGenerate()) {
             val selectedArray = simulationParameters.selectedLocations
             if (selectedArray.length() == 0) {
                 continue
             }
-            //naključno izberi lokacijo iz izbranih lokacij (obdržim koristne podatke)
+
             val randomIndex = (0 until selectedArray.length()).random()
             val jsonLoc = selectedArray.getJSONObject(randomIndex)
+
             val location = Location(
                 _id = jsonLoc.getString("id"),
                 name = jsonLoc.getString("name"),
                 lat = if (jsonLoc.has("lat")) jsonLoc.getDouble("lat") else null,
                 lng = if (jsonLoc.has("lng")) jsonLoc.getDouble("lng") else null,
+                userId = if (jsonLoc.has("userId")) jsonLoc.getString("userId") else null
             )
-            // generiraj naključen datum znotraj časovnega razpona (now till now + timeRange)
+
             val cal = now.clone() as Calendar
             if (simulationParameters.FastTestToggle) {
                 val offsetMinutes = (0..timeRange).random()
@@ -275,7 +278,7 @@ class SimulateFragment : Fragment() {
             val millis = date.time
             val formatted = sdf.format(date)
             Log.d("SimulateFragment", "generiran datum $millis ($formatted)")
-            // generiraj naključen znesek do changeAmount
+
             val maxAmount = if (changeAmount <= 0) 1 else changeAmount
             val amount = (1..maxAmount).random().toDouble()
 
@@ -284,7 +287,7 @@ class SimulateFragment : Fragment() {
             } else {
                 true
             }
-            // creacija transakcije z generiranimi podatki in dodajanje v seznam
+
             val t1 = Transaction(
                 id = UUID.randomUUID().toString(),
                 user = app.databaseUtil.userId,
@@ -295,7 +298,7 @@ class SimulateFragment : Fragment() {
             )
             transactions.add(t1)
         }
-        // pretvori seznam transakcij v JSON niz in vrne string
+
         val jsonArray = JSONArray()
         transactions.forEach { tx ->
             val obj = JSONObject().apply {
@@ -306,6 +309,7 @@ class SimulateFragment : Fragment() {
                     put("name", tx.location.name)
                     put("lat", tx.location.lat)
                     put("lng", tx.location.lng)
+                    put("userId", tx.location.userId)
                 })
                 put("datetime", tx.datetime)
                 put("change", tx.change)
