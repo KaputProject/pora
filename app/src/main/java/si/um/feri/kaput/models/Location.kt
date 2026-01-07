@@ -11,5 +11,5 @@ data class Location(
     val number_of_transactions: Int? = null,
     val lat: Double? = null,
     val lng: Double? = null,
-    val userId: String? = null   // NOVO POLJE
+    val userId: String? = null
 )
