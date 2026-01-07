@@ -1,5 +1,6 @@
 package si.um.feri.kaput.classes
 
+import android.content.Context
 import android.util.Log
 import info.mqtt.android.service.MqttAndroidClient
 import kotlinx.coroutines.CoroutineScope
@@ -10,6 +11,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import si.um.feri.kaput.utils.MqttUtil
 import si.um.feri.kaput.utils.SensorUtil
+import si.um.feri.kaput.utils.SettingsUtil
 
 class PeriodicDataUploader(
     private val mqttClient: MqttAndroidClient
@@ -17,11 +19,11 @@ class PeriodicDataUploader(
     private val tag = "blockchain/upload"
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    fun start() {
+    fun start(context: Context) {
         scope.launch {
             while (true) {
                 uploadDataToBlockchain()
-                delay(6000)
+                delay(SettingsUtil.getDelayMillis(context))
             }
         }
     }

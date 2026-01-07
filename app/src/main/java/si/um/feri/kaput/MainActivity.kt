@@ -67,7 +67,7 @@ class MainActivity : AppCompatActivity() {
     private fun onLocationPermissionGranted() {
         SensorUtil.init(this)
         periodicDataUploader = PeriodicDataUploader(app.mqttClient)
-        periodicDataUploader.start()
+        periodicDataUploader.start(this)
     }
 
     override fun onRequestPermissionsResult(
