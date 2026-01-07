@@ -1,6 +1,7 @@
 package si.um.feri.kaput
 
 import android.app.Application
+import im.delight.android.location.SimpleLocation
 import info.mqtt.android.service.MqttAndroidClient
 import okhttp3.OkHttpClient
 import si.um.feri.kaput.utils.DatabaseUtil
@@ -30,7 +31,5 @@ class MyApplication : Application() {
         // log in to server to get JWT token. Further requests done after successful login in log in function.
         databaseUtil = DatabaseUtil(httpClient, this)
         databaseUtil.loginToServer()
-
-        SensorUtil.init(this)
     }
 }

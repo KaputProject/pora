@@ -21,7 +21,7 @@ class PeriodicDataUploader(
         scope.launch {
             while (true) {
                 uploadDataToBlockchain()
-                delay(60000)
+                delay(6000)
             }
         }
     }
