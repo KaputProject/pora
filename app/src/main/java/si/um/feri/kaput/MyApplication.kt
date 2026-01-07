@@ -3,14 +3,19 @@ package si.um.feri.kaput
 import android.app.Application
 import info.mqtt.android.service.MqttAndroidClient
 import okhttp3.OkHttpClient
+import si.um.feri.kaput.utils.DatabaseUtil
 import si.um.feri.kaput.utils.HttpUtil
 import si.um.feri.kaput.utils.MqttUtil
 import si.um.feri.kaput.utils.SettingsUtil
 
-class MyApplication: Application() {
+
+class MyApplication : Application() {
     var data: MutableList<Int> = mutableListOf()
     lateinit var mqttClient: MqttAndroidClient
     lateinit var httpClient: OkHttpClient
+
+
+    lateinit var databaseUtil: DatabaseUtil
 
     override fun onCreate() {
         super.onCreate()
@@ -18,7 +23,14 @@ class MyApplication: Application() {
         SettingsUtil.handleUserUUID(this)
         data = mutableListOf(1, 2, 3, 4, 5)
 
-        mqttClient = MqttUtil.buildClient(this, SettingsUtil.getUserUUID(this) ?: System.currentTimeMillis().toString())
+        mqttClient = MqttUtil.buildClient(
+            this, SettingsUtil.getUserUUID(this) ?: System.currentTimeMillis().toString()
+        )
         httpClient = HttpUtil.buildClient()
+        // log in to server to get JWT token. Further requests done after successful login in log in function.
+        databaseUtil = DatabaseUtil(httpClient, this)
+        databaseUtil.loginToServer()
     }
+
+
 }

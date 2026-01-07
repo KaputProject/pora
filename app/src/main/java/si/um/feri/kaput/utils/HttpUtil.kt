@@ -6,7 +6,6 @@ import android.widget.Toast
 import info.mqtt.android.service.MqttAndroidClient
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 
 object HttpUtil {
@@ -20,12 +19,16 @@ object HttpUtil {
     /**
      * Sends a POST request with JSON data to the specified URL and publishes the response to the given MQTT topic if specified.
      */
-    fun sendPostRequest(client: OkHttpClient, context: Context, url: String, data: MultipartBody, mqttClient: MqttAndroidClient? = null, mqttTopic: String? = null) {
+    fun URVRVPostRequest(
+        client: OkHttpClient,
+        context: Context,
+        url: String,
+        data: MultipartBody,
+        mqttClient: MqttAndroidClient? = null,
+        mqttTopic: String? = null
+    ) {
         try {
-            val request = Request.Builder()
-                .url(url)
-                .post(data)
-                .build()
+            val request = Request.Builder().url(url).post(data).build()
 
             client.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
@@ -36,15 +39,112 @@ object HttpUtil {
                     val responseBody = response.body?.string()
 
                     if (mqttClient != null && mqttTopic != null) {
-                        mqttClient.publish(mqttTopic, responseBody?.toByteArray() ?: "{}".toByteArray(), 0, false)
+                        mqttClient.publish(
+                            mqttTopic, responseBody?.toByteArray() ?: "{}".toByteArray(), 0, false
+                        )
                     }
 
-                    Log.d(TAG, "HTTP POST request successful. Response published to MQTT topic $mqttTopic")
+                    Log.d(
+                        TAG,
+                        "HTTP POST request successful. Response published to MQTT topic $mqttTopic"
+                    )
                 }
             })
         } catch (e: Exception) {
             Log.d(TAG, "Exception in sendPostRequest: ${e.message}")
-            Toast.makeText(context, "Error sending POST request: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "Error sending POST request: ${e.message}", Toast.LENGTH_LONG)
+                .show()
+        }
+    }
+
+    /**
+     * Sends a POST request with JSON data to the specified URL and publishes the response mostly used for connecting to the backend serverjem iz spletne
+     */
+    fun httpPostRequest(
+        client: OkHttpClient,
+        context: Context,
+        url: String,
+        data: RequestBody,
+        headers: Map<String, String> = emptyMap(),
+        onSuccess: (String) -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        try {
+            val builder = Request.Builder().url(url).post(data)
+
+            headers.forEach { (key, value) ->
+                builder.addHeader(key, value)
+            }
+
+            val request = builder.build()
+
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    Log.d(TAG, "HTTP POST request failed: ${e.message}")
+                    onFailure("HTTP POST request failed: ${e.message}")
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    val responseBody = response.body?.string()
+                    if (response.isSuccessful && responseBody != null) {
+                        Log.d(TAG, "HTTP POST request successful.")
+                        onSuccess(responseBody)
+                    } else {
+                        Log.d(TAG, "HTTP POST request failed with status code: ${response.code}")
+                        onFailure("HTTP POST request failed with status code: ${response.code}")
+                    }
+                }
+            })
+        } catch (e: Exception) {
+            Log.d(TAG, "Exception in logInRequest: ${e.message}")
+            Toast.makeText(context, "Error sending POST request: ${e.message}", Toast.LENGTH_LONG)
+                .show()
+            onFailure("Exception in logInRequest: ${e.message}")
+        }
+    }
+
+    /**
+     * Sends a GET request to the specified URL and publishes the response mostly used for connecting to backend server iz spletne
+     */
+    fun httpGetRequest(
+        client: OkHttpClient,
+        context: Context,
+        url: String,
+        headers: Map<String, String> = emptyMap(),
+        onSuccess: (String) -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        try {
+            val builder = Request.Builder().url(url).get()
+
+            headers.forEach { (key, value) ->
+                builder.addHeader(key, value)
+            }
+
+            val request = builder.build()
+
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    Log.d(TAG, "HTTP GET request failed: ${e.message}")
+                    onFailure("HTTP GET request failed: ${e.message}")
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    val responseBody = response.body?.string()
+                    if (response.isSuccessful && responseBody != null) {
+                        Log.d(TAG, "HTTP GET request successful.")
+                        onSuccess(responseBody)
+                    } else {
+                        Log.d(TAG, "HTTP GET request failed with status code: ${response.code}")
+                        onFailure("HTTP GET request failed with status code: ${response.code}")
+                    }
+                }
+            })
+        } catch (e: Exception) {
+            Log.d(TAG, "Exception in httpGetRequest: ${e.message}")
+            Toast.makeText(context, "Error sending GET request: ${e.message}", Toast.LENGTH_LONG)
+                .show()
+            onFailure("Exception in httpGetRequest: ${e.message}")
         }
     }
 }

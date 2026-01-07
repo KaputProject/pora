@@ -38,8 +38,7 @@ class UploadFragment : Fragment() {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentUploadBinding.inflate(inflater, container, false)
         app = requireActivity().application as MyApplication
@@ -49,30 +48,33 @@ class UploadFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        takeImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                val img = result.data?.extras?.get("data") as? Bitmap
-                if (img != null) {
-                    image = img
-                    binding.imagePreview.setImageBitmap(img)
-                } else {
-                    Toast.makeText(context, "Failed to take image", Toast.LENGTH_SHORT).show()
+        takeImageLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    val img = result.data?.extras?.get("data") as? Bitmap
+                    if (img != null) {
+                        image = img
+                        binding.imagePreview.setImageBitmap(img)
+                    } else {
+                        Toast.makeText(context, "Failed to take image", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
-        }
 
-        pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                val uri = result.data?.data
-                if (uri != null) {
-                    val bitmap = MediaStore.Images.Media.getBitmap(requireContext().contentResolver, uri)
-                    image = bitmap
-                    binding.imagePreview.setImageBitmap(bitmap)
-                } else {
-                    Toast.makeText(context, "Failed to pick image", Toast.LENGTH_SHORT).show()
+        pickImageLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    val uri = result.data?.data
+                    if (uri != null) {
+                        val bitmap =
+                            MediaStore.Images.Media.getBitmap(requireContext().contentResolver, uri)
+                        image = bitmap
+                        binding.imagePreview.setImageBitmap(bitmap)
+                    } else {
+                        Toast.makeText(context, "Failed to pick image", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
-        }
 
         initButtons()
     }
@@ -99,22 +101,13 @@ class UploadFragment : Fragment() {
                 image!!.compress(Bitmap.CompressFormat.JPEG, 100, stream)
                 val byteArray = stream.toByteArray()
 
-                val requestBody = MultipartBody.Builder()
-                    .setType(MultipartBody.FORM)
-                    .addFormDataPart(
-                        "slika", "upload.jpg",
-                        byteArray.toRequestBody()
-                    )
-                    .addFormDataPart("cas", Date().toInstant().toString())
-                    .build()
+                val requestBody =
+                    MultipartBody.Builder().setType(MultipartBody.FORM).addFormDataPart(
+                            "slika", "upload.jpg", byteArray.toRequestBody()
+                        ).addFormDataPart("cas", Date().toInstant().toString()).build()
 
-                HttpUtil.sendPostRequest(
-                    app.httpClient,
-                    context,
-                    url,
-                    requestBody,
-                    app.mqttClient,
-                    MqttUtil.UPLOAD_TOPIC
+                HttpUtil.URVRVPostRequest(
+                    app.httpClient, context, url, requestBody, app.mqttClient, MqttUtil.UPLOAD_TOPIC
                 )
             }
         }
