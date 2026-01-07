@@ -5,8 +5,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import si.um.feri.kaput.MyApplication
 import si.um.feri.kaput.models.Location
-import si.um.feri.kaput.utils.DatabaseUtil
-import kotlin.toString
 
 data class SimulationToggles(
     var family: Boolean = false,
@@ -60,8 +58,6 @@ class SimulationParameters(private val app: MyApplication) {
 
     fun switchFamilyToggle(value: Boolean) {
         toggles.family = value
-        if (toggles.family) {
-        }
     }
 
     fun switchTestToggle(value: Boolean) {
