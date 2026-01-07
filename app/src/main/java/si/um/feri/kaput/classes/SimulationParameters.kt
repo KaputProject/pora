@@ -79,9 +79,9 @@ class SimulationParameters(private val app: MyApplication) {
 
     fun setLocationOptions() {
         val locationsArray: JSONArray = if (toggles.family) {
-            app.familyDataSet.optJSONObject("statistics")?.optJSONArray("locations") ?: JSONArray()
+            app.databaseUtil.familyDataSet.optJSONObject("statistics")?.optJSONArray("locations") ?: JSONArray()
         } else {
-            app.UserDataSet.optJSONObject("user")?.optJSONArray("locations") ?: JSONArray()
+            app.databaseUtil.UserDataSet.optJSONObject("user")?.optJSONArray("locations") ?: JSONArray()
         }
 
         locationOptions = JSONObject().apply {

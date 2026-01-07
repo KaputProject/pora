@@ -45,7 +45,7 @@ class SimulateFragment : Fragment() {
         _binding = FragmentSimulateBinding.inflate(inflater, container, false)
         app = requireActivity().application as MyApplication
         simulationParameters = SimulationParameters(app)
-        Log.d("SimulateFragment", app.JWTtoken)
+        Log.d("SimulateFragment", app.databaseUtil.JWTtoken)
         return binding.root
     }
 
@@ -287,7 +287,7 @@ class SimulateFragment : Fragment() {
             // creacija transakcije z generiranimi podatki in dodajanje v seznam
             val t1 = Transaction(
                 id = UUID.randomUUID().toString(),
-                user = app.userId,
+                user = app.databaseUtil.userId,
                 location = location,
                 datetime = millis,
                 change = amount,
