@@ -7,6 +7,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import si.um.feri.kaput.BuildConfig
 import si.um.feri.kaput.MyApplication
+import kotlin.text.get
 
 class DatabaseUtil(
     private val httpClient: OkHttpClient,
@@ -17,16 +18,19 @@ class DatabaseUtil(
     var familyId: String = ""
     var familyDataSet: JSONObject = JSONObject()
     var UserDataSet: JSONObject = JSONObject()
+
+    var username: String = ""
+
     /**
      * Used to log in to the server and retrieve JWT token.
      */
     fun loginToServer() {
         val jsonBody: RequestBody = """
-                    {
-                        "username": "${BuildConfig.USER_NAME}",
-                        "password": "${BuildConfig.PASSWORD}"
-                    }
-                """.trimIndent().toRequestBody(HttpUtil.JSON)
+                {
+                    "username": "${BuildConfig.USER_NAME}",
+                    "password": "${BuildConfig.PASSWORD}"
+                }
+            """.trimIndent().toRequestBody(HttpUtil.JSON)
 
         HttpUtil.httpPostRequest(
             this.httpClient,
@@ -42,10 +46,18 @@ class DatabaseUtil(
                     } else {
                         json.optString("_id", "")
                     }
+                    val username = if (json.has("user") && json.get("user") is JSONObject) {
+                        json.getJSONObject("user").optString("username", "")
+                    } else {
+                        json.optString("username", "")
+                    }
                     this.JWTtoken = token
                     this.userId = id
+                    this.username =
+                        username  // Že obstaja, samo se prepričajte da se pravilno pridobiva
                     Log.d("MyApp", "Token: $token")
                     Log.d("MyApp", "user id: $id")
+                    Log.d("MyApp", "username: $username")
                     if (this.JWTtoken.isNotEmpty()) {
                         // after successful login, get family ID and user dataset.
                         getFamilyId()  // family dataset will be fetched after family ID is known. in GetFamilyId function
@@ -96,6 +108,16 @@ class DatabaseUtil(
             })
     }
 
+    private fun writeJsonToFile(fileName: String, jsonObject: JSONObject) {
+        try {
+            val file = java.io.File(context.filesDir, fileName)
+            file.writeText(jsonObject.toString())
+            Log.d("MyApp", "Saved JSON to file: $fileName")
+        } catch (e: Exception) {
+            Log.d("MyApp", "Error writing JSON to file $fileName: ${e.message}")
+        }
+    }
+
     /**
      * if familzy ID is known, gets the family dataset from the server.
      */
@@ -112,6 +134,7 @@ class DatabaseUtil(
             onSuccess = { response ->
                 try {
                     this.familyDataSet = JSONObject(response)
+                    writeJsonToFile("family_dataset.json", this.familyDataSet)
                     Log.d("MyApp", "Family data set retrieved." + familyDataSet.toString())
                 } catch (e: Exception) {
                     Log.d("MyApp", "getFamilyDataSet error: ${e.message}")
@@ -138,6 +161,7 @@ class DatabaseUtil(
             onSuccess = { response ->
                 try {
                     this.UserDataSet = JSONObject(response)
+                    writeJsonToFile("user_dataset.json", this.UserDataSet)
                 } catch (e: Exception) {
                     Log.d("MyApp", "getUserDataSet error: ${e.message}")
                 }
