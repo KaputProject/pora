@@ -10,9 +10,7 @@ import si.um.feri.kaput.utils.MqttUtil
 import si.um.feri.kaput.utils.SensorUtil
 import si.um.feri.kaput.utils.SettingsUtil
 
-
 class MyApplication : Application() {
-    var data: MutableList<Int> = mutableListOf()
     lateinit var mqttClient: MqttAndroidClient
     lateinit var httpClient: OkHttpClient
     lateinit var databaseUtil: DatabaseUtil
@@ -21,7 +19,6 @@ class MyApplication : Application() {
         super.onCreate()
 
         SettingsUtil.handleUserUUID(this)
-        data = mutableListOf(1, 2, 3, 4, 5)
 
         mqttClient = MqttUtil.buildClient(
             this, SettingsUtil.getUserUUID(this) ?: System.currentTimeMillis().toString()
