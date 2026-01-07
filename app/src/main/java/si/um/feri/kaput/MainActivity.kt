@@ -12,6 +12,7 @@ import androidx.navigation.fragment.NavHostFragment.Companion.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
+import si.um.feri.kaput.classes.PeriodicDataUploader
 import si.um.feri.kaput.databinding.ActivityMainBinding
 import si.um.feri.kaput.utils.SettingsUtil
 
@@ -19,6 +20,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var app: MyApplication
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
+    private lateinit var periodicDataUploader: PeriodicDataUploader
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +40,9 @@ class MainActivity : AppCompatActivity() {
         val navController = findNavController(supportFragmentManager.findFragmentById(R.id.fragment_host) as NavHostFragment)
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
+
+        periodicDataUploader = PeriodicDataUploader(app.mqttClient)
+        periodicDataUploader.start()
     }
 
     override fun onResume() {

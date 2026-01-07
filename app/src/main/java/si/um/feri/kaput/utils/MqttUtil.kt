@@ -20,6 +20,7 @@ object MqttUtil {
     const val UPLOAD_TOPIC = "kaput/upload"
     const val SIMULATION_TOPIC = "kaput/simulate"
     const val EVENT_TOPIC = "kaput/event"
+    const val BLOCKCHAIN_UPLOAD_TOPIC = "blockchain/upload"
 
     const val TAG = "MqttUtil"
 
