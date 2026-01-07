@@ -1,10 +1,13 @@
 package si.um.feri.kaput
 
+import android.Manifest
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.fragment.NavHostFragment
@@ -12,13 +15,17 @@ import androidx.navigation.fragment.NavHostFragment.Companion.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
+import si.um.feri.kaput.classes.PeriodicDataUploader
 import si.um.feri.kaput.databinding.ActivityMainBinding
+import si.um.feri.kaput.utils.SensorUtil
 import si.um.feri.kaput.utils.SettingsUtil
 
 class MainActivity : AppCompatActivity() {
     lateinit var app: MyApplication
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
+    private lateinit var periodicDataUploader: PeriodicDataUploader
+    private val LOCATION_PERMISSION_REQUEST = 1001
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,14 +45,53 @@ class MainActivity : AppCompatActivity() {
         val navController = findNavController(supportFragmentManager.findFragmentById(R.id.fragment_host) as NavHostFragment)
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
+
+        checkAndRequestLocationPermission()
+    }
+
+    private fun checkAndRequestLocationPermission() {
+        val permissions = arrayOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+        val notGranted = permissions.any {
+            ActivityCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+        if (notGranted) {
+            ActivityCompat.requestPermissions(this, permissions, LOCATION_PERMISSION_REQUEST)
+        } else {
+            onLocationPermissionGranted()
+        }
+    }
+
+    private fun onLocationPermissionGranted() {
+        SensorUtil.init(this)
+        periodicDataUploader = PeriodicDataUploader(app.mqttClient)
+        periodicDataUploader.start(this)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == LOCATION_PERMISSION_REQUEST &&
+            grantResults.all { it == PackageManager.PERMISSION_GRANTED }
+        ) {
+            onLocationPermissionGranted()
+        }
     }
 
     override fun onResume() {
         super.onResume()
-
         if (!SettingsUtil.isNotificationAccessEnabled(this)) {
             showPermissionRequestDialog()
         }
+        SensorUtil.resumeLocationUpdates()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        SensorUtil.stopLocationUpdates()
     }
 
     private fun showPermissionRequestDialog() {

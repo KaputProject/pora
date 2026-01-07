@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.edit
+import androidx.preference.PreferenceManager
 import java.util.UUID
 
 object SettingsUtil {
@@ -68,5 +69,18 @@ object SettingsUtil {
 
     fun getUserUUID(context: Context): String? {
         return getPreferences(context).getString(UUID_KEY, "unknown")
+    }
+
+    fun getDelayMillis(context: Context): Long {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        val value = prefs.getString("delay_value", "60")!!.toLong()
+        val unit = prefs.getString("delay_unit", "seconds")
+
+        return when (unit) {
+            "seconds" -> value * 1000L
+            "minutes" -> value * 60_000L
+            "hours" -> value * 3_600_000L
+            else -> 60000
+        }
     }
 }

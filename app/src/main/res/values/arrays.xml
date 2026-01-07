@@ -9,4 +9,17 @@
         <item>reply</item>
         <item>reply_all</item>
     </string-array>
+
+    <string-array name="delay_unit_entries">
+        <item>Seconds</item>
+        <item>Minutes</item>
+        <item>Hours</item>
+    </string-array>
+
+    <string-array name="delay_unit_values">
+        <item>seconds</item>
+        <item>minutes</item>
+        <item>hours</item>
+    </string-array>
+
 </resources>
