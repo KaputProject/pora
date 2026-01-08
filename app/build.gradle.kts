@@ -59,4 +59,5 @@ dependencies {
     implementation("com.squareup.moshi:moshi-kotlin:1.15.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     implementation("com.github.delight-im:Android-SimpleLocation:v1.1.0")
+    implementation("com.google.code.gson:gson:2.10.1")
 }
