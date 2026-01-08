@@ -9,6 +9,7 @@ import si.um.feri.kaput.MyApplication
 import si.um.feri.kaput.models.Location
 import si.um.feri.kaput.models.Transaction
 import com.google.gson.Gson
+import org.json.JSONArray
 import kotlin.collections.get
 
 class TransactionNotificationListener : NotificationListenerService()  {
@@ -43,12 +44,12 @@ class TransactionNotificationListener : NotificationListenerService()  {
         val bigText = extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()
         val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()
 
-        Log.d(topic, "Notification Posted from: ${sbn.packageName}")
-        Log.d(topic, "Title: $title")
-        Log.d(topic, "BigTitle: $bigTitle")
-        Log.d(topic, "Text: $text")
-        Log.d(topic, "BigText: $bigText")
-        Log.d(topic, "SubText: $subText")
+//        Log.d(topic, "Notification Posted from: ${sbn.packageName}")
+//        Log.d(topic, "Title: $title")
+//        Log.d(topic, "BigTitle: $bigTitle")
+//        Log.d(topic, "Text: $text")
+//        Log.d(topic, "BigText: $bigText")
+//        Log.d(topic, "SubText: $subText")
 
         val outgoing = (title != "Obvestilo o prilivu")
 
@@ -58,11 +59,22 @@ class TransactionNotificationListener : NotificationListenerService()  {
             val amount = match.groupValues[1].replace(',', '.')
             val name = match.groupValues[2]
 
-            // TODO: Tukaj dobi lokacijo iz baze glede na name oz. identifier
-            val location = Location(
-                "1234",
-                name
-            )
+
+            // TODO: Vzami lokacije iz baze
+            val locations = app.databaseUtil.UserDataSet.optJSONObject("user")?.optJSONArray("locations") ?: JSONArray()
+
+            val locationJson = (0 until locations.length())
+                .map { locations.getJSONObject(it) }
+                .find { it.optString("identifier") == name }
+
+            val location = if (locationJson != null) {
+                Location(
+                    locationJson.optString("id"),
+                    locationJson.optString("identifier")
+                )
+            } else {
+                Location("1234", name)
+            }
 
             val transaction = Transaction(
                 user = app.databaseUtil.userId,
