@@ -10,7 +10,6 @@ import si.um.feri.kaput.models.Location
 import si.um.feri.kaput.models.Transaction
 import com.google.gson.Gson
 import org.json.JSONArray
-import kotlin.collections.get
 
 class TransactionNotificationListener : NotificationListenerService()  {
     private val acceptedPackages = listOf(
@@ -77,11 +76,8 @@ class TransactionNotificationListener : NotificationListenerService()  {
             }
 
             val transaction = Transaction(
-                user = app.databaseUtil.userId,
                 location = location,
                 datetime = System.currentTimeMillis(),
-                change = amount.toDouble(),
-                outgoing = outgoing
             )
 
             Log.d(topic, "Parsed transaction: $transaction")
