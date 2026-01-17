@@ -4,7 +4,9 @@ import android.Manifest
 import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -15,7 +17,7 @@ import androidx.navigation.fragment.NavHostFragment.Companion.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
-import si.um.feri.kaput.classes.PeriodicDataUploader
+import si.um.feri.kaput.classes.AlarmDataUploader
 import si.um.feri.kaput.databinding.ActivityMainBinding
 import si.um.feri.kaput.utils.SensorUtil
 import si.um.feri.kaput.utils.SettingsUtil
@@ -24,7 +26,6 @@ class MainActivity : AppCompatActivity() {
     lateinit var app: MyApplication
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
-    private lateinit var periodicDataUploader: PeriodicDataUploader
     private val LOCATION_PERMISSION_REQUEST = 1001
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,8 +67,20 @@ class MainActivity : AppCompatActivity() {
 
     private fun onLocationPermissionGranted() {
         SensorUtil.init(this)
-        periodicDataUploader = PeriodicDataUploader(app.mqttClient)
-        periodicDataUploader.start(this)
+
+        ensureExactAlarmPermission()
+
+        AlarmDataUploader.scheduleNext(this)
+    }
+
+    private fun ensureExactAlarmPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = getSystemService(ALARM_SERVICE) as android.app.AlarmManager
+            if (!alarmManager.canScheduleExactAlarms()) {
+                val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                startActivity(intent)
+            }
+        }
     }
 
     override fun onRequestPermissionsResult(
