@@ -10,13 +10,12 @@ import si.um.feri.kaput.models.Location
 import si.um.feri.kaput.models.Transaction
 import com.google.gson.Gson
 import org.json.JSONArray
+import si.um.feri.kaput.utils.MqttUtil
 
 class TransactionNotificationListener : NotificationListenerService()  {
     private val acceptedPackages = listOf(
         "com.hrc.eb.mobile.android.hibismobiledh",
     )
-
-    private val topic = "transaction_notifications"
 
     private lateinit var app: MyApplication
 
@@ -59,20 +58,38 @@ class TransactionNotificationListener : NotificationListenerService()  {
             val name = match.groupValues[2]
 
 
-            // TODO: Vzami lokacije iz baze
-            val locations = app.databaseUtil.UserDataSet.optJSONObject("user")?.optJSONArray("locations") ?: JSONArray()
+            val location = app.dataManager.userLocations.find {
+                it.identifier == name
+            }
 
-            val locationJson = (0 until locations.length())
-                .map { locations.getJSONObject(it) }
-                .find { it.optString("identifier") == name }
+            if (location == null) {
+                Log.d(MqttUtil.BLOCKCHAIN_UPLOAD_TOPIC, "Location with identifier '$name' not found, extreme event being sent to blockchain")
 
-            val location = if (locationJson != null) {
-                Location(
-                    locationJson.optString("id"),
-                    locationJson.optString("identifier")
-                )
+                val message = {
+                    "type" to "extreme_event"
+                    "message" to "Location with identifier '$name' not found"
+                }
+
+                app.mqttClient.publish(MqttUtil.BLOCKCHAIN_UPLOAD_TOPIC, message.toString().toByteArray(), 0, false)
+                return
+            }
+
+            if (outgoing) {
+                location.total_outflow = (location.total_outflow ?: 0.0) + amount.toDouble()
+                location.users?.find {
+                    it.userId == app.dataManager.userId
+                }?.let {
+                    it.numbOfTrans += 1
+                    it.outflow += amount.toDouble()
+                }
             } else {
-                Location("1234", name)
+                location.total_inflow = (location.total_inflow ?: 0.0) + amount.toDouble()
+                location.users?.find {
+                    it.userId == app.dataManager.userId
+                }?.let {
+                    it.numbOfTrans += 1
+                    it.inflow += amount.toDouble()
+                }
             }
 
             val transaction = Transaction(
@@ -80,12 +97,12 @@ class TransactionNotificationListener : NotificationListenerService()  {
                 datetime = System.currentTimeMillis(),
             )
 
-            Log.d(topic, "Parsed transaction: $transaction")
+            Log.d(MqttUtil.EVENT_TOPIC, "Parsed transaction: $transaction")
 
             val transactionJson = gson.toJson(transaction)
-            app.mqttClient.publish(topic, transactionJson.toByteArray(), 0, false)
+            app.mqttClient.publish(MqttUtil.EVENT_TOPIC, transactionJson.toByteArray(), 0, false)
         } else {
-            Log.d(topic, "No match found in notification text.")
+            Log.d(MqttUtil.EVENT_TOPIC, "No match found in notification text.")
             return
         }
     }
