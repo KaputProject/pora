@@ -52,4 +52,8 @@
     <string name="new_location_selected">Nova lokacija: %.4f, %.4f (ekstremen dogodek)</string>
     <string name="cancel">Prekliči</string>
     <string name="confirm">Potrdi</string>
+    <string name="home">Home</string>
+    <string name="simulate">Simulate</string>
+    <string name="message">message</string>
+    <string name="upload">Upload</string>
 </resources>
