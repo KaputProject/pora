@@ -59,6 +59,6 @@
     <string name="upload">Upload</string>
     <string name="take_image">Take Image</string>
     <string name="choose_image">Choose Image</string>
-    <string name="submit2">Submit</string>
+    <string name="submit2">SUBMIT</string>
     <string name="image_preview">Image preview</string>
 </resources>
