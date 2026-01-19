@@ -29,25 +29,6 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        initButtons()
     }
 
-    private fun initButtons() {
-        binding.settingsButton.setOnClickListener {
-            findNavController().navigate(R.id.action_homeFragment_to_settingsFragment)
-        }
-
-        binding.simulateButton.setOnClickListener {
-            findNavController().navigate(R.id.action_homeFragment_to_simulateFragment)
-        }
-
-        binding.customEventButton.setOnClickListener {
-            findNavController().navigate(R.id.action_homeFragment_to_customEventFragment)
-        }
-
-        binding.uploadButton.setOnClickListener {
-            findNavController().navigate(R.id.action_homeFragment_to_uploadFragment)
-        }
-    }
 }
