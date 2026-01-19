@@ -61,4 +61,5 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     implementation("com.github.delight-im:Android-SimpleLocation:v1.1.0")
     implementation("com.google.code.gson:gson:2.10.1")
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
 }

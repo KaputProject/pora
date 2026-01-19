@@ -1,5 +1,8 @@
 package si.um.feri.kaput
 
+import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.Manifest
 import android.app.AlertDialog
 import android.content.Intent
@@ -9,43 +12,36 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.fragment.NavHostFragment.Companion.findNavController
 import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import si.um.feri.kaput.classes.AlarmDataUploader
 import si.um.feri.kaput.databinding.ActivityMainBinding
-import si.um.feri.kaput.utils.SensorUtil
-import si.um.feri.kaput.utils.SettingsUtil
 
 class MainActivity : AppCompatActivity() {
-    lateinit var app: MyApplication
-    private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
+    private lateinit var appBarConfiguration: AppBarConfiguration
+    private lateinit var navController: NavController
+
     private val LOCATION_PERMISSION_REQUEST = 1001
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         setSupportActionBar(binding.toolbar)
-        app = application as MyApplication
 
-        ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
+        val navHost = supportFragmentManager.findFragmentById(R.id.fragment_host) as NavHostFragment
+        navController = navHost.navController
 
-        val navController = findNavController(supportFragmentManager.findFragmentById(R.id.fragment_host) as NavHostFragment)
         appBarConfiguration = AppBarConfiguration(navController.graph)
+        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration)
         setupActionBarWithNavController(navController, appBarConfiguration)
+        NavigationUI.setupWithNavController(binding.bottomNav, navController)
 
         checkAndRequestLocationPermission()
     }
@@ -94,32 +90,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (!SettingsUtil.isNotificationAccessEnabled(this)) {
-            showPermissionRequestDialog()
-        }
-        SensorUtil.resumeLocationUpdates()
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.toolbar_menu, menu)
+        return true
     }
 
-    override fun onPause() {
-        super.onPause()
-        SensorUtil.stopLocationUpdates()
-    }
-
-    private fun showPermissionRequestDialog() {
-        AlertDialog.Builder(this)
-            .setTitle("Additional Permissions Required")
-            .setMessage("This app requires notification access to function properly. Please enable it in the settings.")
-            .setPositiveButton("Go to Settings") { _, _ ->
-                startActivity(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        // Let NavigationUI handle navigation if the menu item id matches a destination id
+        return NavigationUI.onNavDestinationSelected(item, navController) || super.onOptionsItemSelected(item)
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        val navController = findNavController(supportFragmentManager.findFragmentById(R.id.fragment_host) as NavHostFragment)
-        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+        return navController.navigateUp() || super.onSupportNavigateUp()
     }
 }

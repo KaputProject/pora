@@ -27,4 +27,37 @@
     <string name="allow_negative">Allow negative</string>
     <string name="submit">Submit</string>
     <string name="enter_number_hint">Enter number</string>
+
+    <!-- Custom Event Fragment strings -->
+    <string name="event_amount">Znesek (€)</string>
+    <string name="event_amount_hint">0.00</string>
+    <string name="select_location">Izberi lokacijo</string>
+    <string name="select_location_hint">Tapnite za izbiro lokacije na zemljevidu</string>
+    <string name="event_type">Tip dogodka</string>
+    <string name="normal_event">Normalen dogodek</string>
+    <string name="extreme_event">Ekstremen dogodek (Blockchain)</string>
+    <string name="publish_event">Objavi transakcijo</string>
+    <string name="event_published">Transakcija objavljena!</string>
+    <string name="event_publish_failed">Napaka pri objavi transakcije</string>
+    <string name="fill_all_fields">Prosim izpolnite vsa polja</string>
+    <string name="transaction_type">Tip transakcije</string>
+    <string name="inflow_label">Priliv (+)</string>
+    <string name="outflow_label">Odliv (-)</string>
+    <string name="custom_event_info">Normalen dogodek: obstoječa lokacija → MQTT kaput/event\n\nEkstremen dogodek: nova lokacija → blockchain preko MQTT blockchain/upload</string>
+
+    <!-- Location Map Fragment strings -->
+    <string name="map_instruction">Tapnite na obstoječo lokacijo (modri marker) za normalen dogodek, ali kamor koli drugam za ekstremen dogodek (nova lokacija).</string>
+    <string name="no_location_selected">Nobena lokacija ni izbrana</string>
+    <string name="existing_location_selected">Izbrana obstoječa lokacija: %s</string>
+    <string name="new_location_selected">Nova lokacija: %.4f, %.4f (ekstremen dogodek)</string>
+    <string name="cancel">Prekliči</string>
+    <string name="confirm">Potrdi</string>
+    <string name="home">Home</string>
+    <string name="simulate">Simulate</string>
+    <string name="message">message</string>
+    <string name="upload">Upload</string>
+    <string name="take_image">Take Image</string>
+    <string name="choose_image">Choose Image</string>
+    <string name="submit2">Submit</string>
+    <string name="image_preview">Image preview</string>
 </resources>

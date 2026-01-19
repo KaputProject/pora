@@ -196,8 +196,9 @@ class SimulateFragment : Fragment() {
 
             val cal = now.clone() as Calendar
             if (simulationParameters.fastTestToggle) {
-                val offsetMinutes = (0..timeRange).random()
-                cal.add(Calendar.MINUTE, offsetMinutes)
+                val maxSeconds = timeRange * 60
+                val offsetSeconds = (1..maxSeconds).random()
+                cal.add(Calendar.SECOND, offsetSeconds)
             } else {
                 val offsetMonths = (0..timeRange).random()
                 cal.add(Calendar.MONTH, offsetMonths)

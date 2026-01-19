@@ -31,7 +31,16 @@
         android:id="@+id/customEventFragment"
         android:name="si.um.feri.kaput.fragments.CustomEventFragment"
         android:label="Create a Custom Event"
-        tools:layout="@layout/fragment_custom_event" />
+        tools:layout="@layout/fragment_custom_event">
+        <action
+            android:id="@+id/action_customEventFragment_to_locationMapFragment"
+            app:destination="@id/locationMapFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/locationMapFragment"
+        android:name="si.um.feri.kaput.fragments.LocationMapFragment"
+        android:label="Select Location"
+        tools:layout="@layout/fragment_location_map" />
     <fragment
         android:id="@+id/simulateFragment"
         android:name="si.um.feri.kaput.fragments.SimulateFragment"
