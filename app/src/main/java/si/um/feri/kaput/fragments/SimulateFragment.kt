@@ -148,7 +148,7 @@ class SimulateFragment : Fragment() {
             simulationParameters.isLocationSelected(id)
         }
         val previousCheckedItems = checkedItems.copyOf()
-        val builder = AlertDialog.Builder(requireContext()).setTitle("Izberi lokacije")
+        val builder = AlertDialog.Builder(requireContext()).setTitle("Select locations")
             .setMultiChoiceItems(names, checkedItems) { _, which, isChecked ->
                 checkedItems[which] = isChecked
                 simulationParameters.updateSelectedLocations(locations, checkedItems)
@@ -157,7 +157,7 @@ class SimulateFragment : Fragment() {
                 simulationParameters.updateSelectedLocations(locations, checkedItems)
                 updateLocationText(locations, checkedItems)
                 dialog.dismiss()
-            }.setNegativeButton("Prekliči") { dialog, _ ->
+            }.setNegativeButton("Cancel") { dialog, _ ->
                 simulationParameters.updateSelectedLocations(locations, previousCheckedItems)
                 updateLocationText(locations, previousCheckedItems)
                 dialog.dismiss()

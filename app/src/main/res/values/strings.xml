@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">kaput</string>
     <string name="settings_title">Settings</string>
@@ -29,32 +30,32 @@
     <string name="enter_number_hint">Enter number</string>
 
     <!-- Custom Event Fragment strings -->
-    <string name="event_amount">Znesek (€)</string>
+    <string name="event_amount">Amount (€)</string>
     <string name="event_amount_hint">0.00</string>
-    <string name="select_location">Izberi lokacijo</string>
-    <string name="select_location_hint">Tapnite za izbiro lokacije na zemljevidu</string>
-    <string name="event_type">Tip dogodka</string>
-    <string name="normal_event">Normalen dogodek</string>
-    <string name="extreme_event">Ekstremen dogodek (Blockchain)</string>
-    <string name="publish_event">Objavi transakcijo</string>
-    <string name="event_published">Transakcija objavljena!</string>
-    <string name="event_publish_failed">Napaka pri objavi transakcije</string>
-    <string name="fill_all_fields">Prosim izpolnite vsa polja</string>
-    <string name="transaction_type">Tip transakcije</string>
-    <string name="inflow_label">Priliv (+)</string>
-    <string name="outflow_label">Odliv (-)</string>
-    <string name="custom_event_info">Normalen dogodek: obstoječa lokacija → MQTT kaput/event\n\nEkstremen dogodek: nova lokacija → blockchain preko MQTT blockchain/upload</string>
+    <string name="select_location">Select location</string>
+    <string name="select_location_hint">Tap to select location on the map</string>
+    <string name="event_type">Event type</string>
+    <string name="normal_event">Normal event</string>
+    <string name="extreme_event">Extreme event (Blockchain)</string>
+    <string name="publish_event">Publish transaction</string>
+    <string name="event_published">Transaction published!</string>
+    <string name="event_publish_failed">Failed to publish transaction</string>
+    <string name="fill_all_fields">Please fill in all fields</string>
+    <string name="transaction_type">Transaction type</string>
+    <string name="inflow_label">Inflow (+)</string>
+    <string name="outflow_label">Outflow (-)</string>
+    <string name="custom_event_info">Normal event: existing location → MQTT kaput/event\n\nExtreme event: new location → blockchain via MQTT blockchain/upload</string>
 
     <!-- Location Map Fragment strings -->
-    <string name="map_instruction">Tapnite na obstoječo lokacijo (modri marker) za normalen dogodek, ali kamor koli drugam za ekstremen dogodek (nova lokacija).</string>
-    <string name="no_location_selected">Nobena lokacija ni izbrana</string>
-    <string name="existing_location_selected">Izbrana obstoječa lokacija: %s</string>
-    <string name="new_location_selected">Nova lokacija: %.4f, %.4f (ekstremen dogodek)</string>
-    <string name="cancel">Prekliči</string>
-    <string name="confirm">Potrdi</string>
+    <string name="map_instruction">Tap on an existing location (blue marker) for a normal event, or anywhere else for an extreme event (new location).</string>
+    <string name="no_location_selected">No location selected</string>
+    <string name="existing_location_selected">Selected existing location: %s</string>
+    <string name="new_location_selected">New location: %.4f, %.4f (extreme event)</string>
+    <string name="cancel">Cancel</string>
+    <string name="confirm">Confirm</string>
     <string name="home">Home</string>
     <string name="simulate">Simulate</string>
-    <string name="message">message</string>
+    <string name="message">Message</string>
     <string name="upload">Upload</string>
     <string name="take_image">Take Image</string>
     <string name="choose_image">Choose Image</string>
