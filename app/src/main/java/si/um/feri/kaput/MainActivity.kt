@@ -1,25 +1,23 @@
 package si.um.feri.kaput
 
-import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.Manifest
-import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
-import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import si.um.feri.kaput.classes.AlarmDataUploader
 import si.um.feri.kaput.databinding.ActivityMainBinding
+import si.um.feri.kaput.utils.SensorUtil
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
