@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class LocationUser(
     val userId: String,
     val username: String,
-    val numbOfTrans: Int,
-    val inflow: Double,
-    val outflow: Double
+    var numbOfTrans: Int,
+    var inflow: Double,
+    var outflow: Double
 )
