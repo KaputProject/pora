@@ -15,7 +15,6 @@
     <string name="attachment_summary_on">Automatically download attachments for incoming emails</string>
     <string name="attachment_summary_off">Only download attachments when manually requested</string>
 
-    <!-- Strings moved from fragment_simulate.xml -->
     <string name="family_mode">Family mode</string>
     <string name="high_frequency_test">High frequency test</string>
     <string name="time_period">Time period</string>
