@@ -8,5 +8,6 @@ annotation class BuildConfig {
         //server URL for local testing with emulator
         const val FAMILY_URL = "http://10.0.2.2:5000/family"
         const val USER_URL = "http://10.0.2.2:5000/users"
+        const val mqtt_url = "ssl://13bdcd5deae14b039072ba5899cb41d9.s1.eu.hivemq.cloud:8883"
     }
 }

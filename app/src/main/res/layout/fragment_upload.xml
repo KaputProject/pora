@@ -5,44 +5,62 @@
     android:id="@+id/uploadLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="16dp"
     tools:context=".fragments.UploadFragment">
-
-    <Button
-        android:id="@+id/takeImageButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Take Image"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/chooseImageButton"
-        app:layout_constraintStart_toStartOf="parent" />
 
     <ImageView
         android:id="@+id/imagePreview"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:contentDescription="Image preview"
-        app:layout_constraintBottom_toTopOf="@+id/submitButton"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="24dp"
+        android:background="?attr/selectableItemBackground"
+        android:contentDescription="@string/image_preview"
+        android:scaleType="centerCrop"
+        app:layout_constraintBottom_toTopOf="@+id/buttonGroup"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0" />
 
-    <Button
-        android:id="@+id/submitButton"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/buttonGroup"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Submit"
+        android:layout_marginBottom="4dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/submitButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/takeImageButton"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="2dp"
+            android:text="@string/take_image" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/chooseImageButton"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="2dp"
+            android:text="@string/choose_image" />
+    </LinearLayout>
+
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/submitButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/submit2"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/chooseImageButton" />
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <Button
-        android:id="@+id/chooseImageButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Choose Image"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/submitButton"
-        app:layout_constraintStart_toEndOf="@+id/takeImageButton" />
 </androidx.constraintlayout.widget.ConstraintLayout>

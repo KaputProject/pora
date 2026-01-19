@@ -2,6 +2,7 @@ package si.um.feri.kaput.fragments
 
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.provider.MediaStore
@@ -11,6 +12,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import okhttp3.MultipartBody
@@ -29,6 +31,7 @@ class UploadFragment : Fragment() {
     private var image: Bitmap? = null
     private val REQUEST_IMAGE_CAPTURE = 1
     private val REQUEST_IMAGE_PICK = 2
+    private val CAMERA_PERMISSION_CODE = 100
 
     private lateinit var takeImageLauncher: ActivityResultLauncher<Intent>
     private lateinit var pickImageLauncher: ActivityResultLauncher<Intent>
@@ -79,14 +82,32 @@ class UploadFragment : Fragment() {
         initButtons()
     }
 
+    private fun checkCameraPermissionAndLaunch() {
+        if (ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(android.Manifest.permission.CAMERA), CAMERA_PERMISSION_CODE)
+        } else {
+            val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            takeImageLauncher.launch(takePictureIntent)
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == CAMERA_PERMISSION_CODE && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            takeImageLauncher.launch(takePictureIntent)
+        } else {
+            Toast.makeText(context, "Camera permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun initButtons() {
         val context = requireContext()
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         val url = prefs.getString("vid_url", "http://10.0.2.2:5000/")!! + "/analiziraj"
 
         binding.takeImageButton.setOnClickListener {
-            val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-            takeImageLauncher.launch(takePictureIntent)
+            checkCameraPermissionAndLaunch()
         }
 
         binding.chooseImageButton.setOnClickListener {
