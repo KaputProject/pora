@@ -37,7 +37,6 @@ class MainActivity : AppCompatActivity() {
         navController = navHost.navController
 
         appBarConfiguration = AppBarConfiguration(navController.graph)
-        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration)
         setupActionBarWithNavController(navController, appBarConfiguration)
         NavigationUI.setupWithNavController(binding.bottomNav, navController)
 
