@@ -14,6 +14,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.preference.PreferenceManager
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -130,6 +131,8 @@ class UploadFragment : Fragment() {
                 HttpUtil.URVRVPostRequest(
                     app.httpClient, context, url, requestBody, app.mqttClient, MqttUtil.UPLOAD_TOPIC
                 )
+
+                findNavController().navigateUp()
             }
         }
     }
